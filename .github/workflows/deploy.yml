@@ -33,7 +33,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "."
           target: "/var/www/html/backend"
-          exclude: ".env"
+          exclude: ".env,storage,node_modules,.git,.github,tests,.vscode,.idea,*.log,*.md,bootstrap/cache/*.php"
 
       - name: Set Permissions and Cache
         uses: appleboy/ssh-action@v1.0.3
@@ -46,7 +46,7 @@ jobs:
             DEPLOY_DIR="/var/www/html/backend"
             echo "Running Laravel commands in $DEPLOY_DIR"
 
-            mkdir -p $DEPLOY_DIR 
+            mkdir -p $DEPLOY_DIR
             sudo chown -R www-data:www-data $DEPLOY_DIR
             sudo chmod -R 777 $DEPLOY_DIR
 
