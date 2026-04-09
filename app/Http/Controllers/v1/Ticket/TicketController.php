@@ -134,9 +134,9 @@ class TicketController extends Controller
             ];
 
 
-        
-            
-            
+
+
+
             $forwardedTeamsInfo = DB::select("CALL forwared_teams(:id)", ['id' => $id]);
 
 
@@ -241,30 +241,30 @@ class TicketController extends Controller
                                                 WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                 THEN CONCAT(' partner')
                                                 ELSE null
-                                            END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                fth.fr_response_status_name, tst.srv_time_status_name, 
+                                            END AS ticket_partner, t.user_id, ucm.client_name,
+                                                fth.fr_response_status_name, tst.srv_time_status_name,
                                                 t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                teams.team_name, t.cat_id, categories.category_in_english, 
+                                                teams.team_name, t.cat_id, categories.category_in_english,
                                                 t.subcat_id, sub_categories.sub_category_in_english,
                                                 t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                CASE 
-                                                    WHEN '$statusName' = 'Open' THEN 
+                                                CASE
+                                                    WHEN '$statusName' = 'Open' THEN
                                                         CONCAT(
-                                                            TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                            TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                            TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                            TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                             TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                         )
-                                                    WHEN '$statusName' = 'Closed' THEN 
+                                                    WHEN '$statusName' = 'Closed' THEN
                                                         CONCAT(
-                                                            TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                            TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                            TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                            TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                             TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                         )
                                                 END AS ticket_age,
 
-                                                CASE 
-                                                    WHEN fth.fr_response_status = 2 
+                                                CASE
+                                                    WHEN fth.fr_response_status = 2
                                                     THEN CONCAT(
                                                         TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                         TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -273,7 +273,7 @@ class TicketController extends Controller
                                                     ELSE ''
                                                 END AS fr_due_time,
 
-                                                CASE 
+                                                CASE
                                                     WHEN tst.srv_time_status = 2
                                                     THEN CONCAT(
                                                         TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -294,46 +294,46 @@ class TicketController extends Controller
                                             LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                             LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                             LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                            LEFT JOIN helpdesk.user_client_mappings ucm 
+                                            LEFT JOIN helpdesk.user_client_mappings ucm
                                                 ON t.client_id_helpdesk = ucm.user_id
                                                 AND ucm.business_entity_id = c.id
-                                            LEFT JOIN helpdesk.sub_categories sub_categories 
+                                            LEFT JOIN helpdesk.sub_categories sub_categories
                                                 ON t.subcat_id = sub_categories.id
 
-                                            LEFT JOIN Latest_FTH fth 
-                                                ON t.ticket_number = fth.ticket_number 
-                                                AND t.team_id = fth.team_id 
+                                            LEFT JOIN Latest_FTH fth
+                                                ON t.ticket_number = fth.ticket_number
+                                                AND t.team_id = fth.team_id
 
-                                            LEFT JOIN Latest_TST tst 
-                                                ON t.ticket_number = tst.ticket_number 
-                                                AND t.team_id = tst.team_id 
+                                            LEFT JOIN Latest_TST tst
+                                                ON t.ticket_number = tst.ticket_number
+                                                AND t.team_id = tst.team_id
 
-                                            LEFT JOIN helpdesk.ticket_histories th 
+                                            LEFT JOIN helpdesk.ticket_histories th
                                                 ON t.ticket_number = th.ticket_number
 
                                             LEFT JOIN (
                                                 SELECT ticket_number, comments
                                                 FROM (
-                                                    SELECT tc.ticket_number, tc.comments, 
+                                                    SELECT tc.ticket_number, tc.comments,
                                                         ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                     FROM helpdesk.ticket_comments tc
                                                 ) AS ranked_comments
                                                 WHERE rn = 1
-                                            ) AS latest_comments 
+                                            ) AS latest_comments
                                             ON t.ticket_number = latest_comments.ticket_number
 
                                             WHERE t.business_entity_id = '$businessEntity'
                                             AND (
-                                        ('$statusName' = 'Open' 
+                                        ('$statusName' = 'Open'
                                             AND t.status_id IN (SELECT id FROM helpdesk.statuses WHERE status_name != 'Closed')
                                         )
-                                        OR ('$statusName' = 'Closed' 
+                                        OR ('$statusName' = 'Closed'
                                             AND t.status_id IN (SELECT id FROM helpdesk.statuses WHERE status_name = 'Closed')
                                             AND t.created_at >= NOW() - INTERVAL 1 DAY  -- only last 24 hours
                                         )
                                     )
 
-                                            ORDER BY 
+                                            ORDER BY
                         CASE
                             WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                             THEN CONCAT(t.ticket_number, ' (partner)')
@@ -369,30 +369,30 @@ class TicketController extends Controller
                                                 WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                 THEN CONCAT(' partner')
                                                 ELSE null
-                                            END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                fth.fr_response_status_name, tst.srv_time_status_name, 
+                                            END AS ticket_partner, t.user_id, ucm.client_name,
+                                                fth.fr_response_status_name, tst.srv_time_status_name,
                                                 t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                teams.team_name, t.cat_id, categories.category_in_english, 
+                                                teams.team_name, t.cat_id, categories.category_in_english,
                                                 t.subcat_id, sub_categories.sub_category_in_english,
                                                 t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                CASE 
-                                                    WHEN '$statusName' = 'Open' THEN 
+                                                CASE
+                                                    WHEN '$statusName' = 'Open' THEN
                                                         CONCAT(
-                                                            TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                            TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                            TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                            TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                             TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                         )
-                                                    WHEN '$statusName' = 'Closed' THEN 
+                                                    WHEN '$statusName' = 'Closed' THEN
                                                         CONCAT(
-                                                            TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                            TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                            TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                            TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                             TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                         )
                                                 END AS ticket_age,
 
-                                                CASE 
-                                                    WHEN fth.fr_response_status = 2 
+                                                CASE
+                                                    WHEN fth.fr_response_status = 2
                                                     THEN CONCAT(
                                                         TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                         TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -401,7 +401,7 @@ class TicketController extends Controller
                                                     ELSE ''
                                                 END AS fr_due_time,
 
-                                                CASE 
+                                                CASE
                                                     WHEN tst.srv_time_status = 2
                                                     THEN CONCAT(
                                                         TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -422,46 +422,46 @@ class TicketController extends Controller
                                             LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                             LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                             LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                            LEFT JOIN helpdesk.user_client_mappings ucm 
+                                            LEFT JOIN helpdesk.user_client_mappings ucm
                                                 ON t.client_id_helpdesk = ucm.user_id
                                                 AND ucm.business_entity_id = c.id
-                                            LEFT JOIN helpdesk.sub_categories sub_categories 
+                                            LEFT JOIN helpdesk.sub_categories sub_categories
                                                 ON t.subcat_id = sub_categories.id
 
-                                            LEFT JOIN Latest_FTH fth 
-                                                ON t.ticket_number = fth.ticket_number 
-                                                AND t.team_id = fth.team_id 
+                                            LEFT JOIN Latest_FTH fth
+                                                ON t.ticket_number = fth.ticket_number
+                                                AND t.team_id = fth.team_id
 
-                                            LEFT JOIN Latest_TST tst 
-                                                ON t.ticket_number = tst.ticket_number 
-                                                AND t.team_id = tst.team_id 
+                                            LEFT JOIN Latest_TST tst
+                                                ON t.ticket_number = tst.ticket_number
+                                                AND t.team_id = tst.team_id
 
-                                            LEFT JOIN helpdesk.ticket_histories th 
+                                            LEFT JOIN helpdesk.ticket_histories th
                                                 ON t.ticket_number = th.ticket_number
 
                                             LEFT JOIN (
                                                 SELECT ticket_number, comments
                                                 FROM (
-                                                    SELECT tc.ticket_number, tc.comments, 
+                                                    SELECT tc.ticket_number, tc.comments,
                                                         ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                     FROM helpdesk.ticket_comments tc
                                                 ) AS ranked_comments
                                                 WHERE rn = 1
-                                            ) AS latest_comments 
+                                            ) AS latest_comments
                                             ON t.ticket_number = latest_comments.ticket_number
 
                                             WHERE t.team_id IN ($teamIdsPermited)
                                             AND (
-                                ('$statusName' = 'Open' 
+                                ('$statusName' = 'Open'
                                     AND t.status_id IN (SELECT id FROM helpdesk.statuses WHERE status_name != 'Closed')
                                 )
-                                OR ('$statusName' = 'Closed' 
+                                OR ('$statusName' = 'Closed'
                                     AND t.status_id IN (SELECT id FROM helpdesk.statuses WHERE status_name = 'Closed')
                                     AND t.created_at >= NOW() - INTERVAL 1 DAY  -- only last 24 hours
                                 )
                             )
 
-                                            ORDER BY 
+                                            ORDER BY
                                                     CASE
                                                         WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                         THEN CONCAT(t.ticket_number, ' (partner)')
@@ -496,31 +496,31 @@ class TicketController extends Controller
                                                 WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                 THEN CONCAT(' partner')
                                                 ELSE null
-                                            END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                fth.fr_response_status_name, tst.srv_time_status_name, 
+                                            END AS ticket_partner, t.user_id, ucm.client_name,
+                                                fth.fr_response_status_name, tst.srv_time_status_name,
                                                 t.business_entity_id, c.company_name, t.team_id, t.sid, teams.team_name,
                                                 t.cat_id, categories.category_in_english, t.subcat_id, sub_categories.sub_category_in_english,
                                                 t.status_id, statuses.status_name, t.updated_at, t.created_at,
 
                                                 -- Ticket Age Calculation
-                                                CASE 
-                                                    WHEN '$statusName' = 'Open' THEN 
+                                                CASE
+                                                    WHEN '$statusName' = 'Open' THEN
                                                         CONCAT(
-                                                            TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                            TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                            TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                            TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                             TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                         )
-                                                    WHEN '$statusName' = 'Closed' THEN 
+                                                    WHEN '$statusName' = 'Closed' THEN
                                                         CONCAT(
-                                                            TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                            TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                            TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                            TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                             TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                         )
                                                 END AS ticket_age,
 
                                                 -- First Response Due Time
-                                                CASE 
-                                                    WHEN fth.fr_response_status = 2 
+                                                CASE
+                                                    WHEN fth.fr_response_status = 2
                                                     THEN CONCAT(
                                                         TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                         TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -530,7 +530,7 @@ class TicketController extends Controller
                                                 END AS fr_due_time,
 
                                                 -- Service Response Due Time
-                                                CASE 
+                                                CASE
                                                     WHEN tst.srv_time_status = 2
                                                     THEN CONCAT(
                                                         TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -551,31 +551,31 @@ class TicketController extends Controller
                                             LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                             LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                             LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                            LEFT JOIN helpdesk.user_client_mappings ucm 
+                                            LEFT JOIN helpdesk.user_client_mappings ucm
                                                 ON t.client_id_helpdesk = ucm.user_id
                                                 AND ucm.business_entity_id = c.id
-                                            LEFT JOIN helpdesk.sub_categories sub_categories 
+                                            LEFT JOIN helpdesk.sub_categories sub_categories
                                                 ON t.subcat_id = sub_categories.id
 
                                             -- Join with latest FTH & TST records only
-                                            LEFT JOIN Latest_FTH fth 
-                                                ON t.ticket_number = fth.ticket_number 
-                                                AND t.team_id = fth.team_id 
+                                            LEFT JOIN Latest_FTH fth
+                                                ON t.ticket_number = fth.ticket_number
+                                                AND t.team_id = fth.team_id
 
-                                            LEFT JOIN Latest_TST tst 
-                                                ON t.ticket_number = tst.ticket_number 
-                                                AND t.team_id = tst.team_id 
+                                            LEFT JOIN Latest_TST tst
+                                                ON t.ticket_number = tst.ticket_number
+                                                AND t.team_id = tst.team_id
 
                                             -- Get latest comment per ticket
                                             LEFT JOIN (
                                                 SELECT ticket_number, comments
                                                 FROM (
-                                                    SELECT tc.ticket_number, tc.comments, 
+                                                    SELECT tc.ticket_number, tc.comments,
                                                         ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                     FROM helpdesk.ticket_comments tc
                                                 ) AS ranked_comments
                                                 WHERE rn = 1
-                                            ) AS latest_comments 
+                                            ) AS latest_comments
                                             ON t.ticket_number = latest_comments.ticket_number
 
                                             WHERE t.business_entity_id = '$businessEntity'
@@ -618,30 +618,30 @@ class TicketController extends Controller
                                                 WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                 THEN CONCAT(' partner')
                                                 ELSE null
-                                            END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                fth.fr_response_status_name, tst.srv_time_status_name, 
+                                            END AS ticket_partner, t.user_id, ucm.client_name,
+                                                fth.fr_response_status_name, tst.srv_time_status_name,
                                                 t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                teams.team_name, t.cat_id, categories.category_in_english, 
+                                                teams.team_name, t.cat_id, categories.category_in_english,
                                                 t.subcat_id, sub_categories.sub_category_in_english,
                                                 t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                CASE 
-                                                    WHEN '$statusName' = 'Open' THEN 
+                                                CASE
+                                                    WHEN '$statusName' = 'Open' THEN
                                                         CONCAT(
-                                                            TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                            TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                            TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                            TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                             TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                         )
-                                                    WHEN '$statusName' = 'Closed' THEN 
+                                                    WHEN '$statusName' = 'Closed' THEN
                                                         CONCAT(
-                                                            TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                            TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                            TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                            TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                             TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                         )
                                                 END AS ticket_age,
 
-                                                CASE 
-                                                    WHEN fth.fr_response_status = 2 
+                                                CASE
+                                                    WHEN fth.fr_response_status = 2
                                                     THEN CONCAT(
                                                         TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                         TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -650,7 +650,7 @@ class TicketController extends Controller
                                                     ELSE ''
                                                 END AS fr_due_time,
 
-                                                CASE 
+                                                CASE
                                                     WHEN tst.srv_time_status = 2
                                                     THEN CONCAT(
                                                         TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -671,33 +671,33 @@ class TicketController extends Controller
                                             LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                             LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                             LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                            LEFT JOIN helpdesk.user_client_mappings ucm 
+                                            LEFT JOIN helpdesk.user_client_mappings ucm
                                                 ON t.client_id_helpdesk = ucm.user_id
                                                 AND ucm.business_entity_id = c.id
-                                            LEFT JOIN helpdesk.sub_categories sub_categories 
+                                            LEFT JOIN helpdesk.sub_categories sub_categories
                                                 ON t.subcat_id = sub_categories.id
 
-                                            JOIN Latest_FTH fth 
-                                                ON t.ticket_number = fth.ticket_number 
-                                                AND t.team_id = fth.team_id 
+                                            JOIN Latest_FTH fth
+                                                ON t.ticket_number = fth.ticket_number
+                                                AND t.team_id = fth.team_id
 											AND fth.fr_response_status = '$response'
 
-                                            LEFT JOIN Latest_TST tst 
-                                                ON t.ticket_number = tst.ticket_number 
-                                                AND t.team_id = tst.team_id 
+                                            LEFT JOIN Latest_TST tst
+                                                ON t.ticket_number = tst.ticket_number
+                                                AND t.team_id = tst.team_id
 
-                                            LEFT JOIN helpdesk.ticket_histories th 
+                                            LEFT JOIN helpdesk.ticket_histories th
                                                 ON t.ticket_number = th.ticket_number
 
                                             LEFT JOIN (
                                                 SELECT ticket_number, comments
                                                 FROM (
-                                                    SELECT tc.ticket_number, tc.comments, 
+                                                    SELECT tc.ticket_number, tc.comments,
                                                         ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                     FROM helpdesk.ticket_comments tc
                                                 ) AS ranked_comments
                                                 WHERE rn = 1
-                                            ) AS latest_comments 
+                                            ) AS latest_comments
                                             ON t.ticket_number = latest_comments.ticket_number
 
                                             WHERE t.business_entity_id = '$businessEntity'
@@ -740,30 +740,30 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                    fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner, t.user_id, ucm.client_name,
+                                                    fth.fr_response_status_name, tst.srv_time_status_name,
                                                     t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                    teams.team_name, t.cat_id, categories.category_in_english, 
+                                                    teams.team_name, t.cat_id, categories.category_in_english,
                                                     t.subcat_id, sub_categories.sub_category_in_english,
                                                     t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                    CASE 
-                                                        WHEN '$statusName' = 'Open' THEN 
+                                                    CASE
+                                                        WHEN '$statusName' = 'Open' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                             )
-                                                        WHEN '$statusName' = 'Closed' THEN 
+                                                        WHEN '$statusName' = 'Closed' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                             )
                                                     END AS ticket_age,
 
-                                                    CASE 
-                                                        WHEN fth.fr_response_status = 2 
+                                                    CASE
+                                                        WHEN fth.fr_response_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                             TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -772,7 +772,7 @@ class TicketController extends Controller
                                                         ELSE ''
                                                     END AS fr_due_time,
 
-                                                    CASE 
+                                                    CASE
                                                         WHEN tst.srv_time_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -793,33 +793,33 @@ class TicketController extends Controller
                                                 LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                                 LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                                 LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                                LEFT JOIN helpdesk.user_client_mappings ucm 
+                                                LEFT JOIN helpdesk.user_client_mappings ucm
                                                     ON t.client_id_helpdesk = ucm.user_id
                                                     AND ucm.business_entity_id = c.id
-                                                LEFT JOIN helpdesk.sub_categories sub_categories 
+                                                LEFT JOIN helpdesk.sub_categories sub_categories
                                                     ON t.subcat_id = sub_categories.id
 
-                                                JOIN Latest_FTH fth 
-                                                    ON t.ticket_number = fth.ticket_number 
-                                                    AND t.team_id = fth.team_id 
+                                                JOIN Latest_FTH fth
+                                                    ON t.ticket_number = fth.ticket_number
+                                                    AND t.team_id = fth.team_id
                                                     AND fth.fr_response_status = '$response'
 
-                                                LEFT JOIN Latest_TST tst 
-                                                    ON t.ticket_number = tst.ticket_number 
-                                                    AND t.team_id = tst.team_id 
+                                                LEFT JOIN Latest_TST tst
+                                                    ON t.ticket_number = tst.ticket_number
+                                                    AND t.team_id = tst.team_id
 
-                                                LEFT JOIN helpdesk.ticket_histories th 
+                                                LEFT JOIN helpdesk.ticket_histories th
                                                     ON t.ticket_number = th.ticket_number
 
                                                 LEFT JOIN (
                                                     SELECT ticket_number, comments
                                                     FROM (
-                                                        SELECT tc.ticket_number, tc.comments, 
+                                                        SELECT tc.ticket_number, tc.comments,
                                                             ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                         FROM helpdesk.ticket_comments tc
                                                     ) AS ranked_comments
                                                     WHERE rn = 1
-                                                ) AS latest_comments 
+                                                ) AS latest_comments
                                                 ON t.ticket_number = latest_comments.ticket_number
 
                                                 WHERE t.business_entity_id = '$businessEntity'
@@ -863,30 +863,30 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                    fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner, t.user_id, ucm.client_name,
+                                                    fth.fr_response_status_name, tst.srv_time_status_name,
                                                     t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                    teams.team_name, t.cat_id, categories.category_in_english, 
+                                                    teams.team_name, t.cat_id, categories.category_in_english,
                                                     t.subcat_id, sub_categories.sub_category_in_english,
                                                     t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                    CASE 
-                                                        WHEN '$statusName' = 'Open' THEN 
+                                                    CASE
+                                                        WHEN '$statusName' = 'Open' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                             )
-                                                        WHEN '$statusName' = 'Closed' THEN 
+                                                        WHEN '$statusName' = 'Closed' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                             )
                                                     END AS ticket_age,
 
-                                                    CASE 
-                                                        WHEN fth.fr_response_status = 2 
+                                                    CASE
+                                                        WHEN fth.fr_response_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                             TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -895,7 +895,7 @@ class TicketController extends Controller
                                                         ELSE ''
                                                     END AS fr_due_time,
 
-                                                    CASE 
+                                                    CASE
                                                         WHEN tst.srv_time_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -916,33 +916,33 @@ class TicketController extends Controller
                                                 LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                                 LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                                 LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                                LEFT JOIN helpdesk.user_client_mappings ucm 
+                                                LEFT JOIN helpdesk.user_client_mappings ucm
                                                     ON t.client_id_helpdesk = ucm.user_id
                                                     AND ucm.business_entity_id = c.id
-                                                LEFT JOIN helpdesk.sub_categories sub_categories 
+                                                LEFT JOIN helpdesk.sub_categories sub_categories
                                                     ON t.subcat_id = sub_categories.id
 
-                                                JOIN Latest_FTH fth 
-                                                    ON t.ticket_number = fth.ticket_number 
-                                                    AND t.team_id = fth.team_id 
+                                                JOIN Latest_FTH fth
+                                                    ON t.ticket_number = fth.ticket_number
+                                                    AND t.team_id = fth.team_id
                                                                                                     AND fth.fr_response_status = '$response'
 
-                                                LEFT JOIN Latest_TST tst 
-                                                    ON t.ticket_number = tst.ticket_number 
-                                                    AND t.team_id = tst.team_id 
+                                                LEFT JOIN Latest_TST tst
+                                                    ON t.ticket_number = tst.ticket_number
+                                                    AND t.team_id = tst.team_id
 
-                                                LEFT JOIN helpdesk.ticket_histories th 
+                                                LEFT JOIN helpdesk.ticket_histories th
                                                     ON t.ticket_number = th.ticket_number
 
                                                 LEFT JOIN (
                                                     SELECT ticket_number, comments
                                                     FROM (
-                                                        SELECT tc.ticket_number, tc.comments, 
+                                                        SELECT tc.ticket_number, tc.comments,
                                                             ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                         FROM helpdesk.ticket_comments tc
                                                     ) AS ranked_comments
                                                     WHERE rn = 1
-                                                ) AS latest_comments 
+                                                ) AS latest_comments
                                                 ON t.ticket_number = latest_comments.ticket_number
 
                                                 WHERE t.business_entity_id = '$businessEntity'
@@ -987,30 +987,30 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                    fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner, t.user_id, ucm.client_name,
+                                                    fth.fr_response_status_name, tst.srv_time_status_name,
                                                     t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                    teams.team_name, t.cat_id, categories.category_in_english, 
+                                                    teams.team_name, t.cat_id, categories.category_in_english,
                                                     t.subcat_id, sub_categories.sub_category_in_english,
                                                     t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                    CASE 
-                                                        WHEN '$statusName' = 'Open' THEN 
+                                                    CASE
+                                                        WHEN '$statusName' = 'Open' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                             )
-                                                        WHEN '$statusName' = 'Closed' THEN 
+                                                        WHEN '$statusName' = 'Closed' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                             )
                                                     END AS ticket_age,
 
-                                                    CASE 
-                                                        WHEN fth.fr_response_status = 2 
+                                                    CASE
+                                                        WHEN fth.fr_response_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                             TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -1019,7 +1019,7 @@ class TicketController extends Controller
                                                         ELSE ''
                                                     END AS fr_due_time,
 
-                                                    CASE 
+                                                    CASE
                                                         WHEN tst.srv_time_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -1040,33 +1040,33 @@ class TicketController extends Controller
                                                 LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                                 LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                                 LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                                LEFT JOIN helpdesk.user_client_mappings ucm 
+                                                LEFT JOIN helpdesk.user_client_mappings ucm
                                                     ON t.client_id_helpdesk = ucm.user_id
                                                     AND ucm.business_entity_id = c.id
-                                                LEFT JOIN helpdesk.sub_categories sub_categories 
+                                                LEFT JOIN helpdesk.sub_categories sub_categories
                                                     ON t.subcat_id = sub_categories.id
 
-                                                LEFT JOIN Latest_FTH fth 
-                                                    ON t.ticket_number = fth.ticket_number 
-                                                    AND t.team_id = fth.team_id 
+                                                LEFT JOIN Latest_FTH fth
+                                                    ON t.ticket_number = fth.ticket_number
+                                                    AND t.team_id = fth.team_id
 
-                                                JOIN Latest_TST tst 
-                                                    ON t.ticket_number = tst.ticket_number 
-                                                    AND t.team_id = tst.team_id 
+                                                JOIN Latest_TST tst
+                                                    ON t.ticket_number = tst.ticket_number
+                                                    AND t.team_id = tst.team_id
                                                                                                     AND tst.srv_time_status = '$resolved'
 
-                                                LEFT JOIN helpdesk.ticket_histories th 
+                                                LEFT JOIN helpdesk.ticket_histories th
                                                     ON t.ticket_number = th.ticket_number
 
                                                 LEFT JOIN (
                                                     SELECT ticket_number, comments
                                                     FROM (
-                                                        SELECT tc.ticket_number, tc.comments, 
+                                                        SELECT tc.ticket_number, tc.comments,
                                                             ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                         FROM helpdesk.ticket_comments tc
                                                     ) AS ranked_comments
                                                     WHERE rn = 1
-                                                ) AS latest_comments 
+                                                ) AS latest_comments
                                                 ON t.ticket_number = latest_comments.ticket_number
 
                                                 WHERE t.business_entity_id = '$businessEntity'
@@ -1109,30 +1109,30 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                    fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner, t.user_id, ucm.client_name,
+                                                    fth.fr_response_status_name, tst.srv_time_status_name,
                                                     t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                    teams.team_name, t.cat_id, categories.category_in_english, 
+                                                    teams.team_name, t.cat_id, categories.category_in_english,
                                                     t.subcat_id, sub_categories.sub_category_in_english,
                                                     t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                    CASE 
-                                                        WHEN '$statusName' = 'Open' THEN 
+                                                    CASE
+                                                        WHEN '$statusName' = 'Open' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                             )
-                                                        WHEN '$statusName' = 'Closed' THEN 
+                                                        WHEN '$statusName' = 'Closed' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                             )
                                                     END AS ticket_age,
 
-                                                    CASE 
-                                                        WHEN fth.fr_response_status = 2 
+                                                    CASE
+                                                        WHEN fth.fr_response_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                             TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -1141,7 +1141,7 @@ class TicketController extends Controller
                                                         ELSE ''
                                                     END AS fr_due_time,
 
-                                                    CASE 
+                                                    CASE
                                                         WHEN tst.srv_time_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -1162,33 +1162,33 @@ class TicketController extends Controller
                                                 LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                                 LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                                 LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                                LEFT JOIN helpdesk.user_client_mappings ucm 
+                                                LEFT JOIN helpdesk.user_client_mappings ucm
                                                     ON t.client_id_helpdesk = ucm.user_id
                                                     AND ucm.business_entity_id = c.id
-                                                LEFT JOIN helpdesk.sub_categories sub_categories 
+                                                LEFT JOIN helpdesk.sub_categories sub_categories
                                                     ON t.subcat_id = sub_categories.id
 
-                                                LEFT JOIN Latest_FTH fth 
-                                                    ON t.ticket_number = fth.ticket_number 
-                                                    AND t.team_id = fth.team_id 
+                                                LEFT JOIN Latest_FTH fth
+                                                    ON t.ticket_number = fth.ticket_number
+                                                    AND t.team_id = fth.team_id
 
-                                                JOIN Latest_TST tst 
-                                                    ON t.ticket_number = tst.ticket_number 
-                                                    AND t.team_id = tst.team_id 
+                                                JOIN Latest_TST tst
+                                                    ON t.ticket_number = tst.ticket_number
+                                                    AND t.team_id = tst.team_id
                                                                                                     AND tst.srv_time_status = '$resolved'
 
-                                                LEFT JOIN helpdesk.ticket_histories th 
+                                                LEFT JOIN helpdesk.ticket_histories th
                                                     ON t.ticket_number = th.ticket_number
 
                                                 LEFT JOIN (
                                                     SELECT ticket_number, comments
                                                     FROM (
-                                                        SELECT tc.ticket_number, tc.comments, 
+                                                        SELECT tc.ticket_number, tc.comments,
                                                             ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                         FROM helpdesk.ticket_comments tc
                                                     ) AS ranked_comments
                                                     WHERE rn = 1
-                                                ) AS latest_comments 
+                                                ) AS latest_comments
                                                 ON t.ticket_number = latest_comments.ticket_number
 
                                                 WHERE t.business_entity_id = '$businessEntity'
@@ -1231,30 +1231,30 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                    fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner, t.user_id, ucm.client_name,
+                                                    fth.fr_response_status_name, tst.srv_time_status_name,
                                                     t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                    teams.team_name, t.cat_id, categories.category_in_english, 
+                                                    teams.team_name, t.cat_id, categories.category_in_english,
                                                     t.subcat_id, sub_categories.sub_category_in_english,
                                                     t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                    CASE 
-                                                        WHEN '$statusName' = 'Open' THEN 
+                                                    CASE
+                                                        WHEN '$statusName' = 'Open' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                             )
-                                                        WHEN '$statusName' = 'Closed' THEN 
+                                                        WHEN '$statusName' = 'Closed' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                             )
                                                     END AS ticket_age,
 
-                                                    CASE 
-                                                        WHEN fth.fr_response_status = 2 
+                                                    CASE
+                                                        WHEN fth.fr_response_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                             TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -1263,7 +1263,7 @@ class TicketController extends Controller
                                                         ELSE ''
                                                     END AS fr_due_time,
 
-                                                    CASE 
+                                                    CASE
                                                         WHEN tst.srv_time_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -1284,33 +1284,33 @@ class TicketController extends Controller
                                                 LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                                 LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                                 LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                                LEFT JOIN helpdesk.user_client_mappings ucm 
+                                                LEFT JOIN helpdesk.user_client_mappings ucm
                                                     ON t.client_id_helpdesk = ucm.user_id
                                                     AND ucm.business_entity_id = c.id
-                                                LEFT JOIN helpdesk.sub_categories sub_categories 
+                                                LEFT JOIN helpdesk.sub_categories sub_categories
                                                     ON t.subcat_id = sub_categories.id
 
-                                                LEFT JOIN Latest_FTH fth 
-                                                    ON t.ticket_number = fth.ticket_number 
-                                                    AND t.team_id = fth.team_id 
+                                                LEFT JOIN Latest_FTH fth
+                                                    ON t.ticket_number = fth.ticket_number
+                                                    AND t.team_id = fth.team_id
 
-                                                JOIN Latest_TST tst 
-                                                    ON t.ticket_number = tst.ticket_number 
-                                                    AND t.team_id = tst.team_id 
+                                                JOIN Latest_TST tst
+                                                    ON t.ticket_number = tst.ticket_number
+                                                    AND t.team_id = tst.team_id
                                                     AND tst.srv_time_status = '$resolved'
 
-                                                LEFT JOIN helpdesk.ticket_histories th 
+                                                LEFT JOIN helpdesk.ticket_histories th
                                                     ON t.ticket_number = th.ticket_number
 
                                                 LEFT JOIN (
                                                     SELECT ticket_number, comments
                                                     FROM (
-                                                        SELECT tc.ticket_number, tc.comments, 
+                                                        SELECT tc.ticket_number, tc.comments,
                                                             ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                         FROM helpdesk.ticket_comments tc
                                                     ) AS ranked_comments
                                                     WHERE rn = 1
-                                                ) AS latest_comments 
+                                                ) AS latest_comments
                                                 ON t.ticket_number = latest_comments.ticket_number
 
                                                 WHERE t.business_entity_id = '$businessEntity'
@@ -1355,30 +1355,30 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                    fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner, t.user_id, ucm.client_name,
+                                                    fth.fr_response_status_name, tst.srv_time_status_name,
                                                     t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                    teams.team_name, t.cat_id, categories.category_in_english, 
+                                                    teams.team_name, t.cat_id, categories.category_in_english,
                                                     t.subcat_id, sub_categories.sub_category_in_english,
                                                     t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                    CASE 
-                                                        WHEN '$statusName' = 'Open' THEN 
+                                                    CASE
+                                                        WHEN '$statusName' = 'Open' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                             )
-                                                        WHEN '$statusName' = 'Closed' THEN 
+                                                        WHEN '$statusName' = 'Closed' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                             )
                                                     END AS ticket_age,
 
-                                                    CASE 
-                                                        WHEN fth.fr_response_status = 2 
+                                                    CASE
+                                                        WHEN fth.fr_response_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                             TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -1387,7 +1387,7 @@ class TicketController extends Controller
                                                         ELSE ''
                                                     END AS fr_due_time,
 
-                                                    CASE 
+                                                    CASE
                                                         WHEN tst.srv_time_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -1408,33 +1408,33 @@ class TicketController extends Controller
                                                 LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                                 LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                                 LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                                LEFT JOIN helpdesk.user_client_mappings ucm 
+                                                LEFT JOIN helpdesk.user_client_mappings ucm
                                                     ON t.client_id_helpdesk = ucm.user_id
                                                     AND ucm.business_entity_id = c.id
-                                                LEFT JOIN helpdesk.sub_categories sub_categories 
+                                                LEFT JOIN helpdesk.sub_categories sub_categories
                                                     ON t.subcat_id = sub_categories.id
 
-                                                LEFT JOIN Latest_FTH fth 
-                                                    ON t.ticket_number = fth.ticket_number 
-                                                    AND t.team_id = fth.team_id 
+                                                LEFT JOIN Latest_FTH fth
+                                                    ON t.ticket_number = fth.ticket_number
+                                                    AND t.team_id = fth.team_id
 
-                                                JOIN Latest_TST tst 
-                                                    ON t.ticket_number = tst.ticket_number 
-                                                    AND t.team_id = tst.team_id 
+                                                JOIN Latest_TST tst
+                                                    ON t.ticket_number = tst.ticket_number
+                                                    AND t.team_id = tst.team_id
                                                                                                     AND tst.srv_time_status = '$resolved'
 
-                                                LEFT JOIN helpdesk.ticket_histories th 
+                                                LEFT JOIN helpdesk.ticket_histories th
                                                     ON t.ticket_number = th.ticket_number
 
                                                 LEFT JOIN (
                                                     SELECT ticket_number, comments
                                                     FROM (
-                                                        SELECT tc.ticket_number, tc.comments, 
+                                                        SELECT tc.ticket_number, tc.comments,
                                                             ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                         FROM helpdesk.ticket_comments tc
                                                     ) AS ranked_comments
                                                     WHERE rn = 1
-                                                ) AS latest_comments 
+                                                ) AS latest_comments
                                                 ON t.ticket_number = latest_comments.ticket_number
 
                                                 WHERE ('$statusName' = 'Open' AND t.status_id IN (SELECT id FROM helpdesk.statuses WHERE status_name != 'Closed')
@@ -1478,30 +1478,30 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                    fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner, t.user_id, ucm.client_name,
+                                                    fth.fr_response_status_name, tst.srv_time_status_name,
                                                     t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                    teams.team_name, t.cat_id, categories.category_in_english, 
+                                                    teams.team_name, t.cat_id, categories.category_in_english,
                                                     t.subcat_id, sub_categories.sub_category_in_english,
                                                     t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                    CASE 
-                                                        WHEN '$statusName' = 'Open' THEN 
+                                                    CASE
+                                                        WHEN '$statusName' = 'Open' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                             )
-                                                        WHEN '$statusName' = 'Closed' THEN 
+                                                        WHEN '$statusName' = 'Closed' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                             )
                                                     END AS ticket_age,
 
-                                                    CASE 
-                                                        WHEN fth.fr_response_status = 2 
+                                                    CASE
+                                                        WHEN fth.fr_response_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                             TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -1510,7 +1510,7 @@ class TicketController extends Controller
                                                         ELSE ''
                                                     END AS fr_due_time,
 
-                                                    CASE 
+                                                    CASE
                                                         WHEN tst.srv_time_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -1531,33 +1531,33 @@ class TicketController extends Controller
                                                 LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                                 LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                                 LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                                LEFT JOIN helpdesk.user_client_mappings ucm 
+                                                LEFT JOIN helpdesk.user_client_mappings ucm
                                                     ON t.client_id_helpdesk = ucm.user_id
                                                     AND ucm.business_entity_id = c.id
-                                                LEFT JOIN helpdesk.sub_categories sub_categories 
+                                                LEFT JOIN helpdesk.sub_categories sub_categories
                                                     ON t.subcat_id = sub_categories.id
 
-                                                JOIN Latest_FTH fth 
-                                                    ON t.ticket_number = fth.ticket_number 
-                                                    AND t.team_id = fth.team_id 
+                                                JOIN Latest_FTH fth
+                                                    ON t.ticket_number = fth.ticket_number
+                                                    AND t.team_id = fth.team_id
                                                                                                     AND fth.fr_response_status = '$response'
 
-                                                LEFT JOIN Latest_TST tst 
-                                                    ON t.ticket_number = tst.ticket_number 
-                                                    AND t.team_id = tst.team_id 
+                                                LEFT JOIN Latest_TST tst
+                                                    ON t.ticket_number = tst.ticket_number
+                                                    AND t.team_id = tst.team_id
 
-                                                LEFT JOIN helpdesk.ticket_histories th 
+                                                LEFT JOIN helpdesk.ticket_histories th
                                                     ON t.ticket_number = th.ticket_number
 
                                                 LEFT JOIN (
                                                     SELECT ticket_number, comments
                                                     FROM (
-                                                        SELECT tc.ticket_number, tc.comments, 
+                                                        SELECT tc.ticket_number, tc.comments,
                                                             ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                         FROM helpdesk.ticket_comments tc
                                                     ) AS ranked_comments
                                                     WHERE rn = 1
-                                                ) AS latest_comments 
+                                                ) AS latest_comments
                                                 ON t.ticket_number = latest_comments.ticket_number
 
                                                 WHERE t.team_id IN ($team1)
@@ -1566,7 +1566,7 @@ class TicketController extends Controller
                                                             OR '$statusName' = 'Closed' AND t.status_id IN (SELECT id FROM helpdesk.statuses WHERE status_name = 'Closed')
                                                 )
                                                             AND DATE(t.created_at) BETWEEN '$fromDate' AND '$toDate'
-                                                            
+
 
                                                 ORDER BY CASE
                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
@@ -1605,30 +1605,30 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                    fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner, t.user_id, ucm.client_name,
+                                                    fth.fr_response_status_name, tst.srv_time_status_name,
                                                     t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                    teams.team_name, t.cat_id, categories.category_in_english, 
+                                                    teams.team_name, t.cat_id, categories.category_in_english,
                                                     t.subcat_id, sub_categories.sub_category_in_english,
                                                     t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                    CASE 
-                                                        WHEN '$statusName' = 'Open' THEN 
+                                                    CASE
+                                                        WHEN '$statusName' = 'Open' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                             )
-                                                        WHEN '$statusName' = 'Closed' THEN 
+                                                        WHEN '$statusName' = 'Closed' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                             )
                                                     END AS ticket_age,
 
-                                                    CASE 
-                                                        WHEN fth.fr_response_status = 2 
+                                                    CASE
+                                                        WHEN fth.fr_response_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                             TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -1637,7 +1637,7 @@ class TicketController extends Controller
                                                         ELSE ''
                                                     END AS fr_due_time,
 
-                                                    CASE 
+                                                    CASE
                                                         WHEN tst.srv_time_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -1658,32 +1658,32 @@ class TicketController extends Controller
                                                 LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                                 LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                                 LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                                LEFT JOIN helpdesk.user_client_mappings ucm 
+                                                LEFT JOIN helpdesk.user_client_mappings ucm
                                                     ON t.client_id_helpdesk = ucm.user_id
                                                     AND ucm.business_entity_id = c.id
-                                                LEFT JOIN helpdesk.sub_categories sub_categories 
+                                                LEFT JOIN helpdesk.sub_categories sub_categories
                                                     ON t.subcat_id = sub_categories.id
 
-                                                LEFT JOIN Latest_FTH fth 
-                                                    ON t.ticket_number = fth.ticket_number 
-                                                    AND t.team_id = fth.team_id 
+                                                LEFT JOIN Latest_FTH fth
+                                                    ON t.ticket_number = fth.ticket_number
+                                                    AND t.team_id = fth.team_id
 
-                                                LEFT JOIN Latest_TST tst 
-                                                    ON t.ticket_number = tst.ticket_number 
-                                                    AND t.team_id = tst.team_id 
+                                                LEFT JOIN Latest_TST tst
+                                                    ON t.ticket_number = tst.ticket_number
+                                                    AND t.team_id = tst.team_id
 
-                                                LEFT JOIN helpdesk.ticket_histories th 
+                                                LEFT JOIN helpdesk.ticket_histories th
                                                     ON t.ticket_number = th.ticket_number
 
                                                 LEFT JOIN (
                                                     SELECT ticket_number, comments
                                                     FROM (
-                                                        SELECT tc.ticket_number, tc.comments, 
+                                                        SELECT tc.ticket_number, tc.comments,
                                                             ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                         FROM helpdesk.ticket_comments tc
                                                     ) AS ranked_comments
                                                     WHERE rn = 1
-                                                ) AS latest_comments 
+                                                ) AS latest_comments
                                                 ON t.ticket_number = latest_comments.ticket_number
 
                                                 WHERE t.business_entity_id = '$businessEntity'
@@ -1708,26 +1708,26 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner,t.user_id,ucm.client_name,fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner,t.user_id,ucm.client_name,fth.fr_response_status_name, tst.srv_time_status_name,
                                 t.business_entity_id,c.company_name,t.team_id,t.sid,teams.team_name,
                                 t.cat_id,categories.category_in_english,t.subcat_id,sub_categories.sub_category_in_english,t.status_id,
                                 statuses.status_name, t.updated_at,t.created_at,
-                                CASE 
-                                            WHEN '$statusName' = 'Open' THEN 
+                                CASE
+                                            WHEN '$statusName' = 'Open' THEN
                                                 CONCAT(
-                                                    TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                    TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                    TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                    TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                     TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                 )
-                                            WHEN '$statusName' = 'Closed' THEN 
+                                            WHEN '$statusName' = 'Closed' THEN
                                                 CONCAT(
-                                                    TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                    TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                    TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                    TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                     TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                 )
                                         END AS ticket_age,
 
-                                CASE 
+                                CASE
                                             WHEN fth.fr_response_status = 2
                                             THEN CONCAT(
                                                 TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
@@ -1737,7 +1737,7 @@ class TicketController extends Controller
                                             ELSE ''
                                         END AS fr_due_time,
 
-                                CASE 
+                                CASE
                                     WHEN tst.srv_time_status = 2
                                     THEN CONCAT(
                                         TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -1761,13 +1761,13 @@ class TicketController extends Controller
                                 LEFT JOIN helpdesk.user_client_mappings ucm ON t.client_id_helpdesk = ucm.user_id
                                 AND ucm.business_entity_id = c.id
                                 LEFT JOIN helpdesk.sub_categories sub_categories ON t.subcat_id = sub_categories.id
-                                LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number 
+                                LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number
                                 AND t.team_id = fth.team_id AND fth.fr_response_status != 0
-                                
-                                LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number 
+
+                                LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number
                                 AND t.team_id = tst.team_id AND tst.srv_time_status != 0
                                 LEFT JOIN (SELECT ticket_number, comments
-                                        FROM (SELECT tc.ticket_number, tc.comments, 
+                                        FROM (SELECT tc.ticket_number, tc.comments,
                                                 ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                     FROM helpdesk.ticket_comments tc) AS ranked_comments
                                                         WHERE rn = 1) AS latest_comments ON t.ticket_number = latest_comments.ticket_number
@@ -1786,25 +1786,25 @@ class TicketController extends Controller
 
                     // return 'I am 2 here';
                     // $resources = DB::select("SELECT distinct
-                    //         t.id,t.ticket_number,t.user_id,ucm.client_name, fth.fr_response_status_name, tst.srv_time_status_name, 
+                    //         t.id,t.ticket_number,t.user_id,ucm.client_name, fth.fr_response_status_name, tst.srv_time_status_name,
                     //         t.business_entity_id,c.company_name,t.team_id,t.sid,teams.team_name,t.cat_id,categories.category_in_english,
                     //         t.subcat_id,sub_categories.sub_category_in_english,t.status_id,statuses.status_name,t.created_at,t.updated_at,
-                    //         CASE 
-                    //                     WHEN '$statusName' = 'Open' THEN 
+                    //         CASE
+                    //                     WHEN '$statusName' = 'Open' THEN
                     //                         CONCAT(
-                    //                             TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                    //                             TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                    //                             TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                    //                             TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                     //                             TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                     //                         )
-                    //                     WHEN '$statusName' = 'Closed' THEN 
+                    //                     WHEN '$statusName' = 'Closed' THEN
                     //                         CONCAT(
-                    //                             TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                    //                             TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                    //                             TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                    //                             TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                     //                             TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                     //                         )
                     //                 END AS ticket_age,
 
-                    //         CASE 
+                    //         CASE
                     //                     WHEN fth.fr_response_status = 2
                     //                     THEN CONCAT(
                     //                         TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
@@ -1814,7 +1814,7 @@ class TicketController extends Controller
                     //                     ELSE ''
                     //                 END AS fr_due_time,
 
-                    //         CASE 
+                    //         CASE
                     //             WHEN tst.srv_time_status = 2
                     //             THEN CONCAT(
                     //                 TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -1838,13 +1838,13 @@ class TicketController extends Controller
                     //         LEFT JOIN helpdesk.user_client_mappings ucm ON t.client_id_helpdesk = ucm.user_id
                     //         AND ucm.business_entity_id = c.id
                     //         LEFT JOIN helpdesk.sub_categories sub_categories ON t.subcat_id = sub_categories.id
-                    //         LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number 
+                    //         LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number
                     //         AND t.team_id = fth.team_id AND fth.fr_response_status != 0
 
-                    //         LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number 
+                    //         LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number
                     //         AND t.team_id = tst.team_id AND tst.srv_time_status != 0
                     //         LEFT JOIN (SELECT ticket_number, comments
-                    // 				FROM (SELECT tc.ticket_number, tc.comments, 
+                    // 				FROM (SELECT tc.ticket_number, tc.comments,
                     // 						ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                     // 							FROM helpdesk.ticket_comments tc) AS ranked_comments
                     // 								WHERE rn = 1) AS latest_comments ON t.ticket_number = latest_comments.ticket_number
@@ -1882,30 +1882,30 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                    fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner, t.user_id, ucm.client_name,
+                                                    fth.fr_response_status_name, tst.srv_time_status_name,
                                                     t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                    teams.team_name, t.cat_id, categories.category_in_english, 
+                                                    teams.team_name, t.cat_id, categories.category_in_english,
                                                     t.subcat_id, sub_categories.sub_category_in_english,
                                                     t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                    CASE 
-                                                        WHEN '$statusName' = 'Open' THEN 
+                                                    CASE
+                                                        WHEN '$statusName' = 'Open' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                             )
-                                                        WHEN '$statusName' = 'Closed' THEN 
+                                                        WHEN '$statusName' = 'Closed' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                             )
                                                     END AS ticket_age,
 
-                                                    CASE 
-                                                        WHEN fth.fr_response_status = 2 
+                                                    CASE
+                                                        WHEN fth.fr_response_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                             TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -1914,7 +1914,7 @@ class TicketController extends Controller
                                                         ELSE ''
                                                     END AS fr_due_time,
 
-                                                    CASE 
+                                                    CASE
                                                         WHEN tst.srv_time_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -1935,32 +1935,32 @@ class TicketController extends Controller
                                                 LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                                 LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                                 LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                                LEFT JOIN helpdesk.user_client_mappings ucm 
+                                                LEFT JOIN helpdesk.user_client_mappings ucm
                                                     ON t.client_id_helpdesk = ucm.user_id
                                                     AND ucm.business_entity_id = c.id
-                                                LEFT JOIN helpdesk.sub_categories sub_categories 
+                                                LEFT JOIN helpdesk.sub_categories sub_categories
                                                     ON t.subcat_id = sub_categories.id
 
-                                                LEFT JOIN Latest_FTH fth 
-                                                    ON t.ticket_number = fth.ticket_number 
-                                                    AND t.team_id = fth.team_id 
+                                                LEFT JOIN Latest_FTH fth
+                                                    ON t.ticket_number = fth.ticket_number
+                                                    AND t.team_id = fth.team_id
 
-                                                LEFT JOIN Latest_TST tst 
-                                                    ON t.ticket_number = tst.ticket_number 
-                                                    AND t.team_id = tst.team_id 
+                                                LEFT JOIN Latest_TST tst
+                                                    ON t.ticket_number = tst.ticket_number
+                                                    AND t.team_id = tst.team_id
 
-                                                LEFT JOIN helpdesk.ticket_histories th 
+                                                LEFT JOIN helpdesk.ticket_histories th
                                                     ON t.ticket_number = th.ticket_number
 
                                                 LEFT JOIN (
                                                     SELECT ticket_number, comments
                                                     FROM (
-                                                        SELECT tc.ticket_number, tc.comments, 
+                                                        SELECT tc.ticket_number, tc.comments,
                                                             ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                         FROM helpdesk.ticket_comments tc
                                                     ) AS ranked_comments
                                                     WHERE rn = 1
-                                                ) AS latest_comments 
+                                                ) AS latest_comments
                                                 ON t.ticket_number = latest_comments.ticket_number
 
                                                 WHERE t.team_id IN ($team1)
@@ -1986,26 +1986,26 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner,t.user_id,ucm.client_name,fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner,t.user_id,ucm.client_name,fth.fr_response_status_name, tst.srv_time_status_name,
                                 t.business_entity_id,c.company_name,t.team_id,t.sid,teams.team_name,
                                 t.cat_id,categories.category_in_english,t.subcat_id,sub_categories.sub_category_in_english,t.status_id,
                                 statuses.status_name, t.updated_at,t.created_at,
-                                CASE 
-                                            WHEN '$statusName' = 'Open' THEN 
+                                CASE
+                                            WHEN '$statusName' = 'Open' THEN
                                                 CONCAT(
-                                                    TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                    TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                    TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                    TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                     TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                 )
-                                            WHEN '$statusName' = 'Closed' THEN 
+                                            WHEN '$statusName' = 'Closed' THEN
                                                 CONCAT(
-                                                    TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                    TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                    TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                    TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                     TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                 )
                                         END AS ticket_age,
 
-                                CASE 
+                                CASE
                                             WHEN fth.fr_response_status = 2
                                             THEN CONCAT(
                                                 TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
@@ -2015,7 +2015,7 @@ class TicketController extends Controller
                                             ELSE ''
                                         END AS fr_due_time,
 
-                                CASE 
+                                CASE
                                     WHEN tst.srv_time_status = 2
                                     THEN CONCAT(
                                         TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -2039,13 +2039,13 @@ class TicketController extends Controller
                                 LEFT JOIN helpdesk.user_client_mappings ucm ON t.client_id_helpdesk = ucm.user_id
                                 AND ucm.business_entity_id = c.id
                                 LEFT JOIN helpdesk.sub_categories sub_categories ON t.subcat_id = sub_categories.id
-                                LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number 
+                                LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number
                                 AND t.team_id = fth.team_id AND fth.fr_response_status != 0
-                                
-                                LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number 
+
+                                LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number
                                 AND t.team_id = tst.team_id AND tst.srv_time_status != 0
                                 LEFT JOIN (SELECT ticket_number, comments
-                                        FROM (SELECT tc.ticket_number, tc.comments, 
+                                        FROM (SELECT tc.ticket_number, tc.comments,
                                                 ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                     FROM helpdesk.ticket_comments tc) AS ranked_comments
                                                         WHERE rn = 1) AS latest_comments ON t.ticket_number = latest_comments.ticket_number
@@ -2088,30 +2088,30 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                    fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner, t.user_id, ucm.client_name,
+                                                    fth.fr_response_status_name, tst.srv_time_status_name,
                                                     t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                    teams.team_name, t.cat_id, categories.category_in_english, 
+                                                    teams.team_name, t.cat_id, categories.category_in_english,
                                                     t.subcat_id, sub_categories.sub_category_in_english,
                                                     t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                    CASE 
-                                                        WHEN '$statusName' = 'Open' THEN 
+                                                    CASE
+                                                        WHEN '$statusName' = 'Open' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                             )
-                                                        WHEN '$statusName' = 'Closed' THEN 
+                                                        WHEN '$statusName' = 'Closed' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                             )
                                                     END AS ticket_age,
 
-                                                    CASE 
-                                                        WHEN fth.fr_response_status = 2 
+                                                    CASE
+                                                        WHEN fth.fr_response_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                             TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -2120,7 +2120,7 @@ class TicketController extends Controller
                                                         ELSE ''
                                                     END AS fr_due_time,
 
-                                                    CASE 
+                                                    CASE
                                                         WHEN tst.srv_time_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -2141,33 +2141,33 @@ class TicketController extends Controller
                                                 LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                                 LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                                 LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                                LEFT JOIN helpdesk.user_client_mappings ucm 
+                                                LEFT JOIN helpdesk.user_client_mappings ucm
                                                     ON t.client_id_helpdesk = ucm.user_id
                                                     AND ucm.business_entity_id = c.id
-                                                LEFT JOIN helpdesk.sub_categories sub_categories 
+                                                LEFT JOIN helpdesk.sub_categories sub_categories
                                                     ON t.subcat_id = sub_categories.id
 
-                                                JOIN Latest_FTH fth 
-                                                    ON t.ticket_number = fth.ticket_number 
-                                                    AND t.team_id = fth.team_id 
+                                                JOIN Latest_FTH fth
+                                                    ON t.ticket_number = fth.ticket_number
+                                                    AND t.team_id = fth.team_id
                                                                                                     AND fth.fr_response_status = '$response'
 
-                                                LEFT JOIN Latest_TST tst 
-                                                    ON t.ticket_number = tst.ticket_number 
-                                                    AND t.team_id = tst.team_id 
+                                                LEFT JOIN Latest_TST tst
+                                                    ON t.ticket_number = tst.ticket_number
+                                                    AND t.team_id = tst.team_id
 
-                                                LEFT JOIN helpdesk.ticket_histories th 
+                                                LEFT JOIN helpdesk.ticket_histories th
                                                     ON t.ticket_number = th.ticket_number
 
                                                 LEFT JOIN (
                                                     SELECT ticket_number, comments
                                                     FROM (
-                                                        SELECT tc.ticket_number, tc.comments, 
+                                                        SELECT tc.ticket_number, tc.comments,
                                                             ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                         FROM helpdesk.ticket_comments tc
                                                     ) AS ranked_comments
                                                     WHERE rn = 1
-                                                ) AS latest_comments 
+                                                ) AS latest_comments
                                                 ON t.ticket_number = latest_comments.ticket_number
 
                                                 WHERE t.team_id IN ($team1)
@@ -2176,7 +2176,7 @@ class TicketController extends Controller
                                                             OR '$statusName' = 'Closed' AND t.status_id IN (SELECT id FROM helpdesk.statuses WHERE status_name = 'Closed')
                                                 )
                                                             -- AND DATE(t.created_at) BETWEEN '$fromDate' AND '$toDate'
-                                                            
+
 
                                                 ORDER BY CASE
                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
@@ -2212,30 +2212,30 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                    fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner, t.user_id, ucm.client_name,
+                                                    fth.fr_response_status_name, tst.srv_time_status_name,
                                                     t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                    teams.team_name, t.cat_id, categories.category_in_english, 
+                                                    teams.team_name, t.cat_id, categories.category_in_english,
                                                     t.subcat_id, sub_categories.sub_category_in_english,
                                                     t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                    CASE 
-                                                        WHEN '$statusName' = 'Open' THEN 
+                                                    CASE
+                                                        WHEN '$statusName' = 'Open' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                             )
-                                                        WHEN '$statusName' = 'Closed' THEN 
+                                                        WHEN '$statusName' = 'Closed' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                             )
                                                     END AS ticket_age,
 
-                                                    CASE 
-                                                        WHEN fth.fr_response_status = 2 
+                                                    CASE
+                                                        WHEN fth.fr_response_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                             TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -2244,7 +2244,7 @@ class TicketController extends Controller
                                                         ELSE ''
                                                     END AS fr_due_time,
 
-                                                    CASE 
+                                                    CASE
                                                         WHEN tst.srv_time_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -2265,33 +2265,33 @@ class TicketController extends Controller
                                                 LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                                 LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                                 LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                                LEFT JOIN helpdesk.user_client_mappings ucm 
+                                                LEFT JOIN helpdesk.user_client_mappings ucm
                                                     ON t.client_id_helpdesk = ucm.user_id
                                                     AND ucm.business_entity_id = c.id
-                                                LEFT JOIN helpdesk.sub_categories sub_categories 
+                                                LEFT JOIN helpdesk.sub_categories sub_categories
                                                     ON t.subcat_id = sub_categories.id
 
-                                                LEFT JOIN Latest_FTH fth 
-                                                    ON t.ticket_number = fth.ticket_number 
-                                                    AND t.team_id = fth.team_id 
+                                                LEFT JOIN Latest_FTH fth
+                                                    ON t.ticket_number = fth.ticket_number
+                                                    AND t.team_id = fth.team_id
 
-                                                JOIN Latest_TST tst 
-                                                    ON t.ticket_number = tst.ticket_number 
-                                                    AND t.team_id = tst.team_id 
+                                                JOIN Latest_TST tst
+                                                    ON t.ticket_number = tst.ticket_number
+                                                    AND t.team_id = tst.team_id
                                                                                                     AND tst.srv_time_status = '$resolved'
 
-                                                LEFT JOIN helpdesk.ticket_histories th 
+                                                LEFT JOIN helpdesk.ticket_histories th
                                                     ON t.ticket_number = th.ticket_number
 
                                                 LEFT JOIN (
                                                     SELECT ticket_number, comments
                                                     FROM (
-                                                        SELECT tc.ticket_number, tc.comments, 
+                                                        SELECT tc.ticket_number, tc.comments,
                                                             ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                         FROM helpdesk.ticket_comments tc
                                                     ) AS ranked_comments
                                                     WHERE rn = 1
-                                                ) AS latest_comments 
+                                                ) AS latest_comments
                                                 ON t.ticket_number = latest_comments.ticket_number
 
                                                 WHERE (
@@ -2335,30 +2335,30 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                    fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner, t.user_id, ucm.client_name,
+                                                    fth.fr_response_status_name, tst.srv_time_status_name,
                                                     t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                    teams.team_name, t.cat_id, categories.category_in_english, 
+                                                    teams.team_name, t.cat_id, categories.category_in_english,
                                                     t.subcat_id, sub_categories.sub_category_in_english,
                                                     t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                    CASE 
-                                                        WHEN '$statusName' = 'Open' THEN 
+                                                    CASE
+                                                        WHEN '$statusName' = 'Open' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                             )
-                                                        WHEN '$statusName' = 'Closed' THEN 
+                                                        WHEN '$statusName' = 'Closed' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                             )
                                                     END AS ticket_age,
 
-                                                    CASE 
-                                                        WHEN fth.fr_response_status = 2 
+                                                    CASE
+                                                        WHEN fth.fr_response_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                             TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -2367,7 +2367,7 @@ class TicketController extends Controller
                                                         ELSE ''
                                                     END AS fr_due_time,
 
-                                                    CASE 
+                                                    CASE
                                                         WHEN tst.srv_time_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -2388,33 +2388,33 @@ class TicketController extends Controller
                                                 LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                                 LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                                 LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                                LEFT JOIN helpdesk.user_client_mappings ucm 
+                                                LEFT JOIN helpdesk.user_client_mappings ucm
                                                     ON t.client_id_helpdesk = ucm.user_id
                                                     AND ucm.business_entity_id = c.id
-                                                LEFT JOIN helpdesk.sub_categories sub_categories 
+                                                LEFT JOIN helpdesk.sub_categories sub_categories
                                                     ON t.subcat_id = sub_categories.id
 
-                                                JOIN Latest_FTH fth 
-                                                    ON t.ticket_number = fth.ticket_number 
-                                                    AND t.team_id = fth.team_id 
+                                                JOIN Latest_FTH fth
+                                                    ON t.ticket_number = fth.ticket_number
+                                                    AND t.team_id = fth.team_id
                                                                                                     AND fth.fr_response_status = '$response'
 
-                                                LEFT JOIN Latest_TST tst 
-                                                    ON t.ticket_number = tst.ticket_number 
-                                                    AND t.team_id = tst.team_id 
+                                                LEFT JOIN Latest_TST tst
+                                                    ON t.ticket_number = tst.ticket_number
+                                                    AND t.team_id = tst.team_id
 
-                                                LEFT JOIN helpdesk.ticket_histories th 
+                                                LEFT JOIN helpdesk.ticket_histories th
                                                     ON t.ticket_number = th.ticket_number
 
                                                 LEFT JOIN (
                                                     SELECT ticket_number, comments
                                                     FROM (
-                                                        SELECT tc.ticket_number, tc.comments, 
+                                                        SELECT tc.ticket_number, tc.comments,
                                                             ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                         FROM helpdesk.ticket_comments tc
                                                     ) AS ranked_comments
                                                     WHERE rn = 1
-                                                ) AS latest_comments 
+                                                ) AS latest_comments
                                                 ON t.ticket_number = latest_comments.ticket_number
 
                                                 WHERE (
@@ -2456,30 +2456,30 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                    fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner, t.user_id, ucm.client_name,
+                                                    fth.fr_response_status_name, tst.srv_time_status_name,
                                                     t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                    teams.team_name, t.cat_id, categories.category_in_english, 
+                                                    teams.team_name, t.cat_id, categories.category_in_english,
                                                     t.subcat_id, sub_categories.sub_category_in_english,
                                                     t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                    CASE 
-                                                        WHEN '$statusName' = 'Open' THEN 
+                                                    CASE
+                                                        WHEN '$statusName' = 'Open' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                             )
-                                                        WHEN '$statusName' = 'Closed' THEN 
+                                                        WHEN '$statusName' = 'Closed' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                             )
                                                     END AS ticket_age,
 
-                                                    CASE 
-                                                        WHEN fth.fr_response_status = 2 
+                                                    CASE
+                                                        WHEN fth.fr_response_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                             TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -2488,7 +2488,7 @@ class TicketController extends Controller
                                                         ELSE ''
                                                     END AS fr_due_time,
 
-                                                    CASE 
+                                                    CASE
                                                         WHEN tst.srv_time_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -2509,33 +2509,33 @@ class TicketController extends Controller
                                                 LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                                 LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                                 LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                                LEFT JOIN helpdesk.user_client_mappings ucm 
+                                                LEFT JOIN helpdesk.user_client_mappings ucm
                                                     ON t.client_id_helpdesk = ucm.user_id
                                                     AND ucm.business_entity_id = c.id
-                                                LEFT JOIN helpdesk.sub_categories sub_categories 
+                                                LEFT JOIN helpdesk.sub_categories sub_categories
                                                     ON t.subcat_id = sub_categories.id
 
-                                                LEFT JOIN Latest_FTH fth 
-                                                    ON t.ticket_number = fth.ticket_number 
-                                                    AND t.team_id = fth.team_id 
+                                                LEFT JOIN Latest_FTH fth
+                                                    ON t.ticket_number = fth.ticket_number
+                                                    AND t.team_id = fth.team_id
 
-                                                JOIN Latest_TST tst 
-                                                    ON t.ticket_number = tst.ticket_number 
-                                                    AND t.team_id = tst.team_id 
+                                                JOIN Latest_TST tst
+                                                    ON t.ticket_number = tst.ticket_number
+                                                    AND t.team_id = tst.team_id
                                                                                                     AND tst.srv_time_status = '$resolved'
 
-                                                LEFT JOIN helpdesk.ticket_histories th 
+                                                LEFT JOIN helpdesk.ticket_histories th
                                                     ON t.ticket_number = th.ticket_number
 
                                                 LEFT JOIN (
                                                     SELECT ticket_number, comments
                                                     FROM (
-                                                        SELECT tc.ticket_number, tc.comments, 
+                                                        SELECT tc.ticket_number, tc.comments,
                                                             ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                         FROM helpdesk.ticket_comments tc
                                                     ) AS ranked_comments
                                                     WHERE rn = 1
-                                                ) AS latest_comments 
+                                                ) AS latest_comments
                                                 ON t.ticket_number = latest_comments.ticket_number
 
                                                 WHERE (
@@ -2578,30 +2578,30 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                    fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner, t.user_id, ucm.client_name,
+                                                    fth.fr_response_status_name, tst.srv_time_status_name,
                                                     t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                    teams.team_name, t.cat_id, categories.category_in_english, 
+                                                    teams.team_name, t.cat_id, categories.category_in_english,
                                                     t.subcat_id, sub_categories.sub_category_in_english,
                                                     t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                    CASE 
-                                                        WHEN '$statusName' = 'Open' THEN 
+                                                    CASE
+                                                        WHEN '$statusName' = 'Open' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                             )
-                                                        WHEN '$statusName' = 'Closed' THEN 
+                                                        WHEN '$statusName' = 'Closed' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                             )
                                                     END AS ticket_age,
 
-                                                    CASE 
-                                                        WHEN fth.fr_response_status = 2 
+                                                    CASE
+                                                        WHEN fth.fr_response_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                             TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -2610,7 +2610,7 @@ class TicketController extends Controller
                                                         ELSE ''
                                                     END AS fr_due_time,
 
-                                                    CASE 
+                                                    CASE
                                                         WHEN tst.srv_time_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -2631,33 +2631,33 @@ class TicketController extends Controller
                                                 LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                                 LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                                 LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                                LEFT JOIN helpdesk.user_client_mappings ucm 
+                                                LEFT JOIN helpdesk.user_client_mappings ucm
                                                     ON t.client_id_helpdesk = ucm.user_id
                                                     AND ucm.business_entity_id = c.id
-                                                LEFT JOIN helpdesk.sub_categories sub_categories 
+                                                LEFT JOIN helpdesk.sub_categories sub_categories
                                                     ON t.subcat_id = sub_categories.id
 
-                                                JOIN Latest_FTH fth 
-                                                    ON t.ticket_number = fth.ticket_number 
-                                                    AND t.team_id = fth.team_id 
+                                                JOIN Latest_FTH fth
+                                                    ON t.ticket_number = fth.ticket_number
+                                                    AND t.team_id = fth.team_id
                                                                                                     AND fth.fr_response_status = '$response'
 
-                                                LEFT JOIN Latest_TST tst 
-                                                    ON t.ticket_number = tst.ticket_number 
-                                                    AND t.team_id = tst.team_id 
+                                                LEFT JOIN Latest_TST tst
+                                                    ON t.ticket_number = tst.ticket_number
+                                                    AND t.team_id = tst.team_id
 
-                                                LEFT JOIN helpdesk.ticket_histories th 
+                                                LEFT JOIN helpdesk.ticket_histories th
                                                     ON t.ticket_number = th.ticket_number
 
                                                 LEFT JOIN (
                                                     SELECT ticket_number, comments
                                                     FROM (
-                                                        SELECT tc.ticket_number, tc.comments, 
+                                                        SELECT tc.ticket_number, tc.comments,
                                                             ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                         FROM helpdesk.ticket_comments tc
                                                     ) AS ranked_comments
                                                     WHERE rn = 1
-                                                ) AS latest_comments 
+                                                ) AS latest_comments
                                                 ON t.ticket_number = latest_comments.ticket_number
 
                                                 WHERE ('$statusName' = 'Open' AND t.status_id IN (SELECT id FROM helpdesk.statuses WHERE status_name != 'Closed')
@@ -2699,30 +2699,30 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                    fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner, t.user_id, ucm.client_name,
+                                                    fth.fr_response_status_name, tst.srv_time_status_name,
                                                     t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                    teams.team_name, t.cat_id, categories.category_in_english, 
+                                                    teams.team_name, t.cat_id, categories.category_in_english,
                                                     t.subcat_id, sub_categories.sub_category_in_english,
                                                     t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                    CASE 
-                                                        WHEN '$statusName' = 'Open' THEN 
+                                                    CASE
+                                                        WHEN '$statusName' = 'Open' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                             )
-                                                        WHEN '$statusName' = 'Closed' THEN 
+                                                        WHEN '$statusName' = 'Closed' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                             )
                                                     END AS ticket_age,
 
-                                                    CASE 
-                                                        WHEN fth.fr_response_status = 2 
+                                                    CASE
+                                                        WHEN fth.fr_response_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                             TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -2731,7 +2731,7 @@ class TicketController extends Controller
                                                         ELSE ''
                                                     END AS fr_due_time,
 
-                                                    CASE 
+                                                    CASE
                                                         WHEN tst.srv_time_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -2752,33 +2752,33 @@ class TicketController extends Controller
                                                 LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                                 LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                                 LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                                LEFT JOIN helpdesk.user_client_mappings ucm 
+                                                LEFT JOIN helpdesk.user_client_mappings ucm
                                                     ON t.client_id_helpdesk = ucm.user_id
                                                     AND ucm.business_entity_id = c.id
-                                                LEFT JOIN helpdesk.sub_categories sub_categories 
+                                                LEFT JOIN helpdesk.sub_categories sub_categories
                                                     ON t.subcat_id = sub_categories.id
 
-                                                LEFT JOIN Latest_FTH fth 
-                                                    ON t.ticket_number = fth.ticket_number 
-                                                    AND t.team_id = fth.team_id 
+                                                LEFT JOIN Latest_FTH fth
+                                                    ON t.ticket_number = fth.ticket_number
+                                                    AND t.team_id = fth.team_id
 
-                                                JOIN Latest_TST tst 
-                                                    ON t.ticket_number = tst.ticket_number 
-                                                    AND t.team_id = tst.team_id 
+                                                JOIN Latest_TST tst
+                                                    ON t.ticket_number = tst.ticket_number
+                                                    AND t.team_id = tst.team_id
                                                                                                     AND tst.srv_time_status = '$resolved'
 
-                                                LEFT JOIN helpdesk.ticket_histories th 
+                                                LEFT JOIN helpdesk.ticket_histories th
                                                     ON t.ticket_number = th.ticket_number
 
                                                 LEFT JOIN (
                                                     SELECT ticket_number, comments
                                                     FROM (
-                                                        SELECT tc.ticket_number, tc.comments, 
+                                                        SELECT tc.ticket_number, tc.comments,
                                                             ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                         FROM helpdesk.ticket_comments tc
                                                     ) AS ranked_comments
                                                     WHERE rn = 1
-                                                ) AS latest_comments 
+                                                ) AS latest_comments
                                                 ON t.ticket_number = latest_comments.ticket_number
 
                                                 WHERE (
@@ -2821,30 +2821,30 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                    fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner, t.user_id, ucm.client_name,
+                                                    fth.fr_response_status_name, tst.srv_time_status_name,
                                                     t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                    teams.team_name, t.cat_id, categories.category_in_english, 
+                                                    teams.team_name, t.cat_id, categories.category_in_english,
                                                     t.subcat_id, sub_categories.sub_category_in_english,
                                                     t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                    CASE 
-                                                        WHEN '$statusName' = 'Open' THEN 
+                                                    CASE
+                                                        WHEN '$statusName' = 'Open' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                             )
-                                                        WHEN '$statusName' = 'Closed' THEN 
+                                                        WHEN '$statusName' = 'Closed' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                             )
                                                     END AS ticket_age,
 
-                                                    CASE 
-                                                        WHEN fth.fr_response_status = 2 
+                                                    CASE
+                                                        WHEN fth.fr_response_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                             TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -2853,7 +2853,7 @@ class TicketController extends Controller
                                                         ELSE ''
                                                     END AS fr_due_time,
 
-                                                    CASE 
+                                                    CASE
                                                         WHEN tst.srv_time_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -2874,32 +2874,32 @@ class TicketController extends Controller
                                                 LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                                 LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                                 LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                                LEFT JOIN helpdesk.user_client_mappings ucm 
+                                                LEFT JOIN helpdesk.user_client_mappings ucm
                                                     ON t.client_id_helpdesk = ucm.user_id
                                                     AND ucm.business_entity_id = c.id
-                                                LEFT JOIN helpdesk.sub_categories sub_categories 
+                                                LEFT JOIN helpdesk.sub_categories sub_categories
                                                     ON t.subcat_id = sub_categories.id
 
-                                                LEFT JOIN Latest_FTH fth 
-                                                    ON t.ticket_number = fth.ticket_number 
-                                                    AND t.team_id = fth.team_id 
+                                                LEFT JOIN Latest_FTH fth
+                                                    ON t.ticket_number = fth.ticket_number
+                                                    AND t.team_id = fth.team_id
 
-                                                LEFT JOIN Latest_TST tst 
-                                                    ON t.ticket_number = tst.ticket_number 
-                                                    AND t.team_id = tst.team_id 
+                                                LEFT JOIN Latest_TST tst
+                                                    ON t.ticket_number = tst.ticket_number
+                                                    AND t.team_id = tst.team_id
 
-                                                LEFT JOIN helpdesk.ticket_histories th 
+                                                LEFT JOIN helpdesk.ticket_histories th
                                                     ON t.ticket_number = th.ticket_number
 
                                                 LEFT JOIN (
                                                     SELECT ticket_number, comments
                                                     FROM (
-                                                        SELECT tc.ticket_number, tc.comments, 
+                                                        SELECT tc.ticket_number, tc.comments,
                                                             ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                         FROM helpdesk.ticket_comments tc
                                                     ) AS ranked_comments
                                                     WHERE rn = 1
-                                                ) AS latest_comments 
+                                                ) AS latest_comments
                                                 ON t.ticket_number = latest_comments.ticket_number
 
                                                 WHERE t.ticket_number = '$ticketNumber'
@@ -2942,30 +2942,30 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                    fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner, t.user_id, ucm.client_name,
+                                                    fth.fr_response_status_name, tst.srv_time_status_name,
                                                     t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                    teams.team_name, t.cat_id, categories.category_in_english, 
+                                                    teams.team_name, t.cat_id, categories.category_in_english,
                                                     t.subcat_id, sub_categories.sub_category_in_english,
                                                     t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                    CASE 
-                                                        WHEN '$statusName' = 'Open' THEN 
+                                                    CASE
+                                                        WHEN '$statusName' = 'Open' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                             )
-                                                        WHEN '$statusName' = 'Closed' THEN 
+                                                        WHEN '$statusName' = 'Closed' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                             )
                                                     END AS ticket_age,
 
-                                                    CASE 
-                                                        WHEN fth.fr_response_status = 2 
+                                                    CASE
+                                                        WHEN fth.fr_response_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                             TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -2974,7 +2974,7 @@ class TicketController extends Controller
                                                         ELSE ''
                                                     END AS fr_due_time,
 
-                                                    CASE 
+                                                    CASE
                                                         WHEN tst.srv_time_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -2995,32 +2995,32 @@ class TicketController extends Controller
                                                 LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                                 LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                                 LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                                LEFT JOIN helpdesk.user_client_mappings ucm 
+                                                LEFT JOIN helpdesk.user_client_mappings ucm
                                                     ON t.client_id_helpdesk = ucm.user_id
                                                     AND ucm.business_entity_id = c.id
-                                                LEFT JOIN helpdesk.sub_categories sub_categories 
+                                                LEFT JOIN helpdesk.sub_categories sub_categories
                                                     ON t.subcat_id = sub_categories.id
 
-                                                LEFT JOIN Latest_FTH fth 
-                                                    ON t.ticket_number = fth.ticket_number 
-                                                    AND t.team_id = fth.team_id 
+                                                LEFT JOIN Latest_FTH fth
+                                                    ON t.ticket_number = fth.ticket_number
+                                                    AND t.team_id = fth.team_id
 
-                                                LEFT JOIN Latest_TST tst 
-                                                    ON t.ticket_number = tst.ticket_number 
-                                                    AND t.team_id = tst.team_id 
+                                                LEFT JOIN Latest_TST tst
+                                                    ON t.ticket_number = tst.ticket_number
+                                                    AND t.team_id = tst.team_id
 
-                                                LEFT JOIN helpdesk.ticket_histories th 
+                                                LEFT JOIN helpdesk.ticket_histories th
                                                     ON t.ticket_number = th.ticket_number
 
                                                 LEFT JOIN (
                                                     SELECT ticket_number, comments
                                                     FROM (
-                                                        SELECT tc.ticket_number, tc.comments, 
+                                                        SELECT tc.ticket_number, tc.comments,
                                                             ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                         FROM helpdesk.ticket_comments tc
                                                     ) AS ranked_comments
                                                     WHERE rn = 1
-                                                ) AS latest_comments 
+                                                ) AS latest_comments
                                                 ON t.ticket_number = latest_comments.ticket_number
 
                                                 WHERE t.business_entity_id = 8
@@ -3064,30 +3064,30 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                    fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner, t.user_id, ucm.client_name,
+                                                    fth.fr_response_status_name, tst.srv_time_status_name,
                                                     t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                    teams.team_name, t.cat_id, categories.category_in_english, 
+                                                    teams.team_name, t.cat_id, categories.category_in_english,
                                                     t.subcat_id, sub_categories.sub_category_in_english,
                                                     t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                    CASE 
-                                                        WHEN '$statusName' = 'Open' THEN 
+                                                    CASE
+                                                        WHEN '$statusName' = 'Open' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                             )
-                                                        WHEN '$statusName' = 'Closed' THEN 
+                                                        WHEN '$statusName' = 'Closed' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                             )
                                                     END AS ticket_age,
 
-                                                    CASE 
-                                                        WHEN fth.fr_response_status = 2 
+                                                    CASE
+                                                        WHEN fth.fr_response_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                             TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -3096,7 +3096,7 @@ class TicketController extends Controller
                                                         ELSE ''
                                                     END AS fr_due_time,
 
-                                                    CASE 
+                                                    CASE
                                                         WHEN tst.srv_time_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -3117,32 +3117,32 @@ class TicketController extends Controller
                                                 LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                                 LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                                 LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                                LEFT JOIN helpdesk.user_client_mappings ucm 
+                                                LEFT JOIN helpdesk.user_client_mappings ucm
                                                     ON t.client_id_helpdesk = ucm.user_id
                                                     AND ucm.business_entity_id = c.id
-                                                LEFT JOIN helpdesk.sub_categories sub_categories 
+                                                LEFT JOIN helpdesk.sub_categories sub_categories
                                                     ON t.subcat_id = sub_categories.id
 
-                                                LEFT JOIN Latest_FTH fth 
-                                                    ON t.ticket_number = fth.ticket_number 
-                                                    AND t.team_id = fth.team_id 
+                                                LEFT JOIN Latest_FTH fth
+                                                    ON t.ticket_number = fth.ticket_number
+                                                    AND t.team_id = fth.team_id
 
-                                                LEFT JOIN Latest_TST tst 
-                                                    ON t.ticket_number = tst.ticket_number 
-                                                    AND t.team_id = tst.team_id 
+                                                LEFT JOIN Latest_TST tst
+                                                    ON t.ticket_number = tst.ticket_number
+                                                    AND t.team_id = tst.team_id
 
-                                                LEFT JOIN helpdesk.ticket_histories th 
+                                                LEFT JOIN helpdesk.ticket_histories th
                                                     ON t.ticket_number = th.ticket_number
 
                                                 LEFT JOIN (
                                                     SELECT ticket_number, comments
                                                     FROM (
-                                                        SELECT tc.ticket_number, tc.comments, 
+                                                        SELECT tc.ticket_number, tc.comments,
                                                             ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                         FROM helpdesk.ticket_comments tc
                                                     ) AS ranked_comments
                                                     WHERE rn = 1
-                                                ) AS latest_comments 
+                                                ) AS latest_comments
                                                 ON t.ticket_number = latest_comments.ticket_number
 
                                                 WHERE t.business_entity_id = 8
@@ -3187,30 +3187,30 @@ class TicketController extends Controller
                                                     WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                     THEN CONCAT(' partner')
                                                     ELSE null
-                                                END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                    fth.fr_response_status_name, tst.srv_time_status_name, 
+                                                END AS ticket_partner, t.user_id, ucm.client_name,
+                                                    fth.fr_response_status_name, tst.srv_time_status_name,
                                                     t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                    teams.team_name, t.cat_id, categories.category_in_english, 
+                                                    teams.team_name, t.cat_id, categories.category_in_english,
                                                     t.subcat_id, sub_categories.sub_category_in_english,
                                                     t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                    CASE 
-                                                        WHEN '$statusName' = 'Open' THEN 
+                                                    CASE
+                                                        WHEN '$statusName' = 'Open' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                             )
-                                                        WHEN '$statusName' = 'Closed' THEN 
+                                                        WHEN '$statusName' = 'Closed' THEN
                                                             CONCAT(
-                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                             )
                                                     END AS ticket_age,
 
-                                                    CASE 
-                                                        WHEN fth.fr_response_status = 2 
+                                                    CASE
+                                                        WHEN fth.fr_response_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                             TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -3219,7 +3219,7 @@ class TicketController extends Controller
                                                         ELSE ''
                                                     END AS fr_due_time,
 
-                                                    CASE 
+                                                    CASE
                                                         WHEN tst.srv_time_status = 2
                                                         THEN CONCAT(
                                                             TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -3240,32 +3240,32 @@ class TicketController extends Controller
                                                 LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                                 LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                                 LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                                LEFT JOIN helpdesk.user_client_mappings ucm 
+                                                LEFT JOIN helpdesk.user_client_mappings ucm
                                                     ON t.client_id_helpdesk = ucm.user_id
                                                     AND ucm.business_entity_id = c.id
-                                                LEFT JOIN helpdesk.sub_categories sub_categories 
+                                                LEFT JOIN helpdesk.sub_categories sub_categories
                                                     ON t.subcat_id = sub_categories.id
 
-                                                LEFT JOIN Latest_FTH fth 
-                                                    ON t.ticket_number = fth.ticket_number 
-                                                    AND t.team_id = fth.team_id 
+                                                LEFT JOIN Latest_FTH fth
+                                                    ON t.ticket_number = fth.ticket_number
+                                                    AND t.team_id = fth.team_id
 
-                                                LEFT JOIN Latest_TST tst 
-                                                    ON t.ticket_number = tst.ticket_number 
-                                                    AND t.team_id = tst.team_id 
+                                                LEFT JOIN Latest_TST tst
+                                                    ON t.ticket_number = tst.ticket_number
+                                                    AND t.team_id = tst.team_id
 
-                                                LEFT JOIN helpdesk.ticket_histories th 
+                                                LEFT JOIN helpdesk.ticket_histories th
                                                     ON t.ticket_number = th.ticket_number
 
                                                 LEFT JOIN (
                                                     SELECT ticket_number, comments
                                                     FROM (
-                                                        SELECT tc.ticket_number, tc.comments, 
+                                                        SELECT tc.ticket_number, tc.comments,
                                                             ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                         FROM helpdesk.ticket_comments tc
                                                     ) AS ranked_comments
                                                     WHERE rn = 1
-                                                ) AS latest_comments 
+                                                ) AS latest_comments
                                                 ON t.ticket_number = latest_comments.ticket_number
 
                                                 WHERE t.business_entity_id = 8
@@ -3309,30 +3309,30 @@ class TicketController extends Controller
                                                 WHEN u.username LIKE 'OP%' OR u.username LIKE 'OM%' OR u.username LIKE 'RP%'
                                                 THEN CONCAT(' partner')
                                                 ELSE null
-                                            END AS ticket_partner, t.user_id, ucm.client_name, 
-                                                fth.fr_response_status_name, tst.srv_time_status_name, 
+                                            END AS ticket_partner, t.user_id, ucm.client_name,
+                                                fth.fr_response_status_name, tst.srv_time_status_name,
                                                 t.business_entity_id, c.company_name, t.team_id, t.sid,
-                                                teams.team_name, t.cat_id, categories.category_in_english, 
+                                                teams.team_name, t.cat_id, categories.category_in_english,
                                                 t.subcat_id, sub_categories.sub_category_in_english,
                                                 t.status_id, statuses.status_name, t.created_at, t.updated_at,
 
-                                                CASE 
-                                                    WHEN '$statusName' = 'Open' THEN 
+                                                CASE
+                                                    WHEN '$statusName' = 'Open' THEN
                                                         CONCAT(
-                                                            TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                            TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                            TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                            TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                             TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                                         )
-                                                    WHEN '$statusName' = 'Closed' THEN 
+                                                    WHEN '$statusName' = 'Closed' THEN
                                                         CONCAT(
-                                                            TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                            TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                            TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                            TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                             TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                                         )
                                                 END AS ticket_age,
 
-                                                CASE 
-                                                    WHEN fth.fr_response_status = 2 
+                                                CASE
+                                                    WHEN fth.fr_response_status = 2
                                                     THEN CONCAT(
                                                         TIMESTAMPDIFF(DAY, fth.created_at, NOW()), 'd ',
                                                         TIMESTAMPDIFF(HOUR, fth.created_at, NOW()) % 24, 'h ',
@@ -3341,7 +3341,7 @@ class TicketController extends Controller
                                                     ELSE ''
                                                 END AS fr_due_time,
 
-                                                CASE 
+                                                CASE
                                                     WHEN tst.srv_time_status = 2
                                                     THEN CONCAT(
                                                         TIMESTAMPDIFF(DAY, tst.created_at, NOW()), 'd ',
@@ -3362,32 +3362,32 @@ class TicketController extends Controller
                                             LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                             LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
                                             LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
-                                            LEFT JOIN helpdesk.user_client_mappings ucm 
+                                            LEFT JOIN helpdesk.user_client_mappings ucm
                                                 ON t.client_id_helpdesk = ucm.user_id
                                                 AND ucm.business_entity_id = c.id
-                                            LEFT JOIN helpdesk.sub_categories sub_categories 
+                                            LEFT JOIN helpdesk.sub_categories sub_categories
                                                 ON t.subcat_id = sub_categories.id
 
-                                            LEFT JOIN Latest_FTH fth 
-                                                ON t.ticket_number = fth.ticket_number 
-                                                AND t.team_id = fth.team_id 
+                                            LEFT JOIN Latest_FTH fth
+                                                ON t.ticket_number = fth.ticket_number
+                                                AND t.team_id = fth.team_id
 
-                                            LEFT JOIN Latest_TST tst 
-                                                ON t.ticket_number = tst.ticket_number 
-                                                AND t.team_id = tst.team_id 
+                                            LEFT JOIN Latest_TST tst
+                                                ON t.ticket_number = tst.ticket_number
+                                                AND t.team_id = tst.team_id
 
-                                            LEFT JOIN helpdesk.ticket_histories th 
+                                            LEFT JOIN helpdesk.ticket_histories th
                                                 ON t.ticket_number = th.ticket_number
 
                                             LEFT JOIN (
                                                 SELECT ticket_number, comments
                                                 FROM (
-                                                    SELECT tc.ticket_number, tc.comments, 
+                                                    SELECT tc.ticket_number, tc.comments,
                                                         ROW_NUMBER() OVER (PARTITION BY tc.ticket_number ORDER BY tc.created_at DESC) AS rn
                                                     FROM helpdesk.ticket_comments tc
                                                 ) AS ranked_comments
                                                 WHERE rn = 1
-                                            ) AS latest_comments 
+                                            ) AS latest_comments
                                             ON t.ticket_number = latest_comments.ticket_number
 
                                             WHERE t.business_entity_id = 8
@@ -3415,17 +3415,17 @@ class TicketController extends Controller
 
                     $resources = DB::select("SELECT DISTINCT t.id,t.ticket_number,t.user_id,ucm.client_name,t.business_entity_id,c.company_name,t.  team_id,t.sid,t.cat_id,categories.category_in_english,t.subcat_id,sub_categories.sub_category_in_english,t.status_id,
                             statuses.status_name,t.created_at,t.updated_at,
-                            CASE 
-                                        WHEN '$statusName' = 'Open' THEN 
+                            CASE
+                                        WHEN '$statusName' = 'Open' THEN
                                             CONCAT(
-                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                             )
-                                        WHEN '$statusName' = 'Closed' THEN 
+                                        WHEN '$statusName' = 'Closed' THEN
                                             CONCAT(
-                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                             )
                                     END AS ticket_age
@@ -3434,14 +3434,14 @@ class TicketController extends Controller
                             ,t.source_type
 
                         FROM (
-                                SELECT 
+                                SELECT
                                     id, ticket_number, user_id, client_id_helpdesk, business_entity_id, team_id, sid, cat_id, subcat_id, status_id, created_at, updated_at, status_update_by,
                                     'Ticket' AS source_type
                                 FROM helpdesk.tickets
 
                                 UNION ALL
 
-                                SELECT 
+                                SELECT
                                     id, ticket_number, user_id, client_id_helpdesk, business_entity_id, team_id, sid, cat_id, subcat_id, status_id, created_at, updated_at, status_update_by,
                                     'Self-Ticket' AS source_type
                                 FROM helpdesk.self_tickets
@@ -3457,9 +3457,9 @@ class TicketController extends Controller
                         LEFT JOIN helpdesk.user_client_mappings ucm ON t.client_id_helpdesk = ucm.user_id
                         AND ucm.business_entity_id = c.id
                         LEFT JOIN helpdesk.sub_categories sub_categories ON t.subcat_id = sub_categories.id
-                        LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number 
+                        LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number
                             AND t.team_id = fth.team_id AND fth.fr_response_status != 0
-                        LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number 
+                        LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number
                             AND t.team_id = tst.team_id AND tst.srv_time_status != 0
 
                         WHERE t.business_entity_id = '$businessEntity1'
@@ -3478,17 +3478,17 @@ class TicketController extends Controller
                     // return 'I am 3';
                     $resources = DB::select("SELECT DISTINCT t.id,t.ticket_number,t.user_id,ucm.client_name,t.business_entity_id,c.company_name,t.team_id,t.sid,t.cat_id,categories.category_in_english,t.subcat_id,sub_categories.sub_category_in_english,t.status_id,
                             statuses.status_name,t.created_at,t.updated_at,
-                            CASE 
-                                        WHEN '$statusName' = 'Open' THEN 
+                            CASE
+                                        WHEN '$statusName' = 'Open' THEN
                                             CONCAT(
-                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                             )
-                                        WHEN '$statusName' = 'Closed' THEN 
+                                        WHEN '$statusName' = 'Closed' THEN
                                             CONCAT(
-                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                             )
                                     END AS ticket_age
@@ -3497,14 +3497,14 @@ class TicketController extends Controller
                             ,t.source_type
 
                         FROM (
-                            SELECT 
+                            SELECT
                                 id, ticket_number, user_id, client_id_helpdesk, business_entity_id, team_id, sid, cat_id, subcat_id, status_id, created_at, updated_at, status_update_by,
                                 'Ticket' AS source_type
                             FROM helpdesk.tickets
 
                             UNION ALL
 
-                            SELECT 
+                            SELECT
                                 id, ticket_number, user_id, client_id_helpdesk, business_entity_id, team_id, sid, cat_id, subcat_id, status_id, created_at, updated_at, status_update_by,
                                 'Self-Ticket' AS source_type
                             FROM helpdesk.self_tickets
@@ -3520,9 +3520,9 @@ class TicketController extends Controller
                         LEFT JOIN helpdesk.user_client_mappings ucm ON t.client_id_helpdesk = ucm.user_id
                             AND ucm.business_entity_id = c.id
                         LEFT JOIN helpdesk.sub_categories sub_categories ON t.subcat_id = sub_categories.id
-                        LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number 
+                        LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number
                             AND t.team_id = fth.team_id AND fth.fr_response_status != 0
-                        LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number 
+                        LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number
                             AND t.team_id = tst.team_id AND tst.srv_time_status != 0
 
                         WHERE t.business_entity_id = '$businessEntity1'
@@ -3541,17 +3541,17 @@ class TicketController extends Controller
                     // return 'I am 3';
                     $resources = DB::select("SELECT DISTINCT t.id,t.ticket_number,t.user_id,ucm.client_name,t.business_entity_id,c.company_name,t.team_id,t.sid,t.cat_id,categories.category_in_english,t.subcat_id,sub_categories.sub_category_in_english,t.status_id,
                             statuses.status_name,t.created_at,t.updated_at,
-                            CASE 
-                                        WHEN '$statusName' = 'Open' THEN 
+                            CASE
+                                        WHEN '$statusName' = 'Open' THEN
                                             CONCAT(
-                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                             )
-                                        WHEN '$statusName' = 'Closed' THEN 
+                                        WHEN '$statusName' = 'Closed' THEN
                                             CONCAT(
-                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                             )
                                     END AS ticket_age
@@ -3560,14 +3560,14 @@ class TicketController extends Controller
                             ,t.source_type
 
                         FROM (
-                            SELECT 
+                            SELECT
                                 id, ticket_number, user_id, client_id_helpdesk, business_entity_id, team_id, sid, cat_id, subcat_id, status_id, created_at, updated_at, status_update_by,
                                 'Ticket' AS source_type
                             FROM helpdesk.tickets
 
                             UNION ALL
 
-                            SELECT 
+                            SELECT
                                 id, ticket_number, user_id, client_id_helpdesk, business_entity_id, team_id, sid, cat_id, subcat_id, status_id, created_at, updated_at, status_update_by,
                                 'Self-Ticket' AS source_type
                             FROM helpdesk.self_tickets
@@ -3583,9 +3583,9 @@ class TicketController extends Controller
                         LEFT JOIN helpdesk.user_client_mappings ucm ON t.client_id_helpdesk = ucm.user_id
                             AND ucm.business_entity_id = c.id
                         LEFT JOIN helpdesk.sub_categories sub_categories ON t.subcat_id = sub_categories.id
-                        LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number 
+                        LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number
                             AND t.team_id = fth.team_id AND fth.fr_response_status != 0
-                        LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number 
+                        LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number
                             AND t.team_id = tst.team_id AND tst.srv_time_status != 0
 
                         WHERE (t.user_id = $userID OR t.client_id_helpdesk = $userID)
@@ -3611,17 +3611,17 @@ class TicketController extends Controller
                                     t.id,t.ticket_number,t.user_id,  t.business_entity_id,c.company_name,t.team_id,t.sid,
                                     t.cat_id,categories.category_in_english,t.subcat_id,sub_categories.sub_category_in_english,
                                     t.status_id,statuses.status_name,t.created_at, t.updated_at,
-                                    CASE 
-                                        WHEN '$statusName' = 'Open' THEN 
+                                    CASE
+                                        WHEN '$statusName' = 'Open' THEN
                                             CONCAT(
-                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                             )
-                                        WHEN '$statusName' = 'Closed' THEN 
+                                        WHEN '$statusName' = 'Closed' THEN
                                             CONCAT(
-                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                             )
                                     END AS ticket_age
@@ -3646,17 +3646,17 @@ class TicketController extends Controller
                             LEFT JOIN users u2 ON t.status_update_by = u2.id
                                     LEFT JOIN helpdesk.teams teams ON t.team_id = teams.id
                                     LEFT JOIN helpdesk.statuses statuses ON t.status_id = statuses.id
-                                    
+
                                     LEFT JOIN helpdesk.categories ON t.cat_id = categories.id
                                     -- LEFT JOIN helpdesk.user_client_mappings ucm ON t.client_id_vendor = ucm.client_id
                                     LEFT JOIN helpdesk.user_client_mappings ucm ON t.client_id_helpdesk = ucm.user_id
                                     AND ucm.business_entity_id = c.id
                                     LEFT JOIN helpdesk.sub_categories sub_categories ON t.subcat_id = sub_categories.id
 
-                                    LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number 
+                                    LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number
                                     AND t.team_id = fth.team_id AND fth.fr_response_status != 0
-                                    
-                                    LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number 
+
+                                    LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number
                                     AND t.team_id = tst.team_id AND tst.srv_time_status != 0
 
                                     -- where t.business_entity_id = '$businessEntity1'
@@ -3676,17 +3676,17 @@ class TicketController extends Controller
                             t.id,t.ticket_number,t.user_id, t.business_entity_id,c.company_name,t.team_id,t.sid,
                                     t.cat_id,categories.category_in_english,t.subcat_id,sub_categories.sub_category_in_english,
                                     t.status_id,statuses.status_name,t.created_at, t.updated_at,
-                                    CASE 
-                                        WHEN '$statusName' = 'Open' THEN 
+                                    CASE
+                                        WHEN '$statusName' = 'Open' THEN
                                             CONCAT(
-                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                             )
-                                        WHEN '$statusName' = 'Closed' THEN 
+                                        WHEN '$statusName' = 'Closed' THEN
                                             CONCAT(
-                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                             )
                                     END AS ticket_age
@@ -3709,10 +3709,10 @@ class TicketController extends Controller
                             LEFT JOIN helpdesk.user_client_mappings ucm ON t.client_id_helpdesk = ucm.user_id
                             AND ucm.business_entity_id = c.id
                             LEFT JOIN helpdesk.sub_categories sub_categories ON t.subcat_id = sub_categories.id
-                            LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number 
+                            LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number
                             AND t.team_id = fth.team_id AND fth.fr_response_status != 0
-                            
-                            LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number 
+
+                            LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number
                             AND t.team_id = tst.team_id AND tst.srv_time_status != 0
                             where t.business_entity_id = '$businessEntity1'
                             -- AND t.client_id_helpdesk = '$userID'
@@ -3732,17 +3732,17 @@ class TicketController extends Controller
                             t.id,t.ticket_number,t.user_id, t.business_entity_id,c.company_name,t.team_id,t.sid,
                                     t.cat_id,categories.category_in_english,t.subcat_id,sub_categories.sub_category_in_english,
                                     t.status_id,statuses.status_name,t.created_at, t.updated_at,
-                                    CASE 
-                                        WHEN '$statusName' = 'Open' THEN 
+                                    CASE
+                                        WHEN '$statusName' = 'Open' THEN
                                             CONCAT(
-                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                             )
-                                        WHEN '$statusName' = 'Closed' THEN 
+                                        WHEN '$statusName' = 'Closed' THEN
                                             CONCAT(
-                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                             )
                                     END AS ticket_age
@@ -3765,10 +3765,10 @@ class TicketController extends Controller
                             LEFT JOIN helpdesk.user_client_mappings ucm ON t.client_id_helpdesk = ucm.user_id
                             AND ucm.business_entity_id = c.id
                             LEFT JOIN helpdesk.sub_categories sub_categories ON t.subcat_id = sub_categories.id
-                            LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number 
+                            LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number
                             AND t.team_id = fth.team_id AND fth.fr_response_status != 0
-                            
-                            LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number 
+
+                            LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number
                             AND t.team_id = tst.team_id AND tst.srv_time_status != 0
                             AND t.user_id = '$userID'
                             AND (
@@ -3799,7 +3799,7 @@ class TicketController extends Controller
             $businessEntity = $request->businessEntity;
 
             if ($userType == 'Agent') {
-                $resources = DB::select("SELECT 
+                $resources = DB::select("SELECT
                                                 SUM(CASE WHEN t.status_id != 6 THEN 1 ELSE 0 END) AS open_count,
                                                 SUM(CASE WHEN t.status_id = 6 THEN 1 ELSE 0 END) AS close_count
                                                 FROM helpdesk.tickets t WHERE t.team_id IN ($teamIds)");
@@ -3810,18 +3810,18 @@ class TicketController extends Controller
                 return ApiResponse::success($responseObject, "Success", 200);
             } elseif ($userType == 'Client') {
 
-                $resources = DB::select("SELECT 
+                $resources = DB::select("SELECT
                     SUM(CASE WHEN t.status_id != 6 THEN 1 ELSE 0 END) AS open_count,
                     SUM(CASE WHEN t.status_id = 6 THEN 1 ELSE 0 END) AS close_count
                 FROM (
-                    SELECT status_id 
-                    FROM helpdesk.tickets 
+                    SELECT status_id
+                    FROM helpdesk.tickets
                     WHERE (user_id = $userID OR client_id_helpdesk = $userID)
                     -- AND business_entity_id = '$businessEntity1'
                     AND (business_entity_id = '$businessEntity1' OR business_entity_id = '$businessEntity')
                     UNION ALL
-                    SELECT status_id 
-                    FROM helpdesk.self_tickets 
+                    SELECT status_id
+                    FROM helpdesk.self_tickets
                     WHERE (user_id = $userID OR client_id_helpdesk = $userID)
                     -- AND business_entity_id = '$businessEntity1'
                     AND (business_entity_id = '$businessEntity1' OR business_entity_id = '$businessEntity')
@@ -3832,7 +3832,7 @@ class TicketController extends Controller
                 ];
                 return ApiResponse::success($responseObject, "Success", 200);
             } elseif ($userType == 'Customer') {
-                $resources = DB::select("SELECT 
+                $resources = DB::select("SELECT
                                                 SUM(CASE WHEN t.status_id != 6 THEN 1 ELSE 0 END) AS open_count,
                                                 SUM(CASE WHEN t.status_id = 6 THEN 1 ELSE 0 END) AS close_count
                                                 FROM helpdesk.tickets t WHERE user_id IN ($userID)");
@@ -3877,7 +3877,7 @@ class TicketController extends Controller
         if ($request->hasFile('ticketInfo.attachment')) {
             $attachments = $request->file('ticketInfo.attachment');
         }
-        
+
         $branchId = $request->ticketInfo['branch'] ?? null;;
         $aggregatorId = $request->ticketInfo['aggregatorId'] ?? null;;
 
@@ -4050,17 +4050,17 @@ class TicketController extends Controller
                                 t.id,t.ticket_number, ucm.client_name, t.business_entity_id,c.company_name,t.team_id,
                                 t.cat_id,categories.category_in_english,t.subcat_id,sub_categories.sub_category_in_english,
                                 t.status_id,statuses.status_name, t.updated_at,
-                                CASE 
-                                        WHEN '$statusName' = 'Open' THEN 
+                                CASE
+                                        WHEN '$statusName' = 'Open' THEN
                                             CONCAT(
-                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                             )
-                                        WHEN '$statusName' = 'Closed' THEN 
+                                        WHEN '$statusName' = 'Closed' THEN
                                             CONCAT(
-                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                             )
                                     END AS ticket_age
@@ -4075,9 +4075,9 @@ class TicketController extends Controller
                                 -- LEFT JOIN helpdesk.user_client_mappings ucm ON t.client_id_vendor = ucm.client_id
                                 LEFT JOIN helpdesk.user_client_mappings ucm ON t.client_id_helpdesk = ucm.user_id
                                 LEFT JOIN helpdesk.sub_categories sub_categories ON t.subcat_id = sub_categories.id
-                                LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number 
+                                LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number
                                 AND t.team_id = fth.team_id AND fth.fr_response_status != 0
-                                LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number 
+                                LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number
                                 AND t.team_id = tst.team_id AND tst.srv_time_status != 0
 
                                 where t.business_entity_id = '$businessEntity'
@@ -4095,17 +4095,17 @@ class TicketController extends Controller
                         t.id,t.ticket_number, ucm.client_name, t.business_entity_id,c.company_name,t.team_id,
                                 t.cat_id,categories.category_in_english,t.subcat_id,sub_categories.sub_category_in_english,
                                 t.status_id,statuses.status_name, t.updated_at,
-                                CASE 
-                                        WHEN '$statusName' = 'Open' THEN 
+                                CASE
+                                        WHEN '$statusName' = 'Open' THEN
                                             CONCAT(
-                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ', 
-                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ', 
+                                                TIMESTAMPDIFF(DAY, t.created_at, NOW()), 'd ',
+                                                TIMESTAMPDIFF(HOUR, t.created_at, NOW()) % 24, 'h ',
                                                 TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) % 60, 'm '
                                             )
-                                        WHEN '$statusName' = 'Closed' THEN 
+                                        WHEN '$statusName' = 'Closed' THEN
                                             CONCAT(
-                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ', 
-                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ', 
+                                                TIMESTAMPDIFF(DAY, t.created_at, t.updated_at), 'd ',
+                                                TIMESTAMPDIFF(HOUR, t.created_at, t.updated_at) % 24, 'h ',
                                                 TIMESTAMPDIFF(MINUTE, t.created_at, t.updated_at) % 60, 'm '
                                             )
                                     END AS ticket_age
@@ -4121,10 +4121,10 @@ class TicketController extends Controller
                         -- LEFT JOIN helpdesk.user_client_mappings ucm ON t.client_id_vendor = ucm.client_id
                         LEFT JOIN helpdesk.user_client_mappings ucm ON t.client_id_helpdesk = ucm.user_id
                         LEFT JOIN helpdesk.sub_categories sub_categories ON t.subcat_id = sub_categories.id
-                        LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number 
+                        LEFT JOIN helpdesk.ticket_fr_time_team_histories fth ON t.ticket_number = fth.ticket_number
                         AND t.team_id = fth.team_id AND fth.fr_response_status != 0
-                        
-                        LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number 
+
+                        LEFT JOIN helpdesk.ticket_srv_time_team_histories tst ON t.ticket_number = tst.ticket_number
                         AND t.team_id = tst.team_id AND tst.srv_time_status != 0
                         where t.business_entity_id = '$businessEntity'
                         AND DATE(t.created_at) BETWEEN '$fromDate' AND '$toDate'
@@ -4198,17 +4198,17 @@ class TicketController extends Controller
         return ApiResponse::error([], "Error", 500);
     }
 
-    
+
 
     // public function forwardToHQ(Request $request)
     // {
     //     $recentClientId = Client::createChildClient($request->clientInfo);
-        
+
     //     $teamMapping = TeamMappingForPartner::where('company_id', $request->businessEntity)
     //         ->where('subcategory_id', $request->subCategory)
     //         ->where('is_active', true)
     //         ->first();
-        
+
     //     if ($teamMapping) {
     //         $teamId = $teamMapping->team_id;
     //     } else {
@@ -4221,11 +4221,11 @@ class TicketController extends Controller
     //             );
     //         }
     //     }
-        
+
     //     $ticketNumber = TicketInfo::ticketNumberGenarate();
     //     $attachments = $request->file('attachment', []);
     //     $ccEmail = $request->ccEmail;
-        
+
     //     $ticketData = [
     //         'ticket_number'      => $ticketNumber,
     //         'is_parent'          => 0,
@@ -4240,11 +4240,11 @@ class TicketController extends Controller
     //         'subcat_id'          => $request->subCategory,
     //         'priority_name'      => $request->priority,
     //         'status_id'          => $request->status,
-    //         'team_id'            => $teamId, 
+    //         'team_id'            => $teamId,
     //         'note'               => $request->descriptions,
     //         'mobile_no'          => $request->mobileNumber,
     //     ];
-        
+
     //     $orbitData = in_array($ticketData['business_entity_id'], [8, 9])
     //         ? [
     //             'ticket_number'      => $ticketNumber,
@@ -4257,7 +4257,7 @@ class TicketController extends Controller
     //             'phone'              => $request->clientInfo['primaryEmail'],
     //         ]
     //         : null;
-        
+
     //     // ✅ INSERT INTO ticket_assign_team_logs
     //     try {
     //         TicketAssignTeamLog::create([
@@ -4272,7 +4272,7 @@ class TicketController extends Controller
     //             500
     //         );
     //     }
-        
+
     //     // 7️⃣ Create ticket
     //     return TicketInfo::ticketCreatedByClient(
     //         $ticketData,
@@ -4286,12 +4286,12 @@ class TicketController extends Controller
     public function forwardToHQ(Request $request)
     {
         $recentClientId = Client::createChildClient($request->clientInfo);
-        
+
         $teamMapping = TeamMappingForPartner::where('company_id', $request->businessEntity)
             ->where('subcategory_id', $request->subCategory)
             ->where('is_active', true)
             ->first();
-        
+
         if ($teamMapping) {
             $teamId = $teamMapping->team_id;
         } else {
@@ -4304,11 +4304,11 @@ class TicketController extends Controller
                 );
             }
         }
-        
+
         $ticketNumber = TicketInfo::ticketNumberGenarate();
         $attachments = $request->file('attachment', []);
         $ccEmail = $request->ccEmail;
-        
+
         $ticketData = [
             'ticket_number'      => $ticketNumber,
             'is_parent'          => 0,
@@ -4323,16 +4323,16 @@ class TicketController extends Controller
             'subcat_id'          => $request->subCategory,
             'priority_name'      => $request->priority,
             'status_id'          => $request->status,
-            'team_id'            => $teamId, 
+            'team_id'            => $teamId,
             'note'               => $request->descriptions,
             'mobile_no'          => $request->mobileNumber,
         ];
-        
+
         // Add aggregator_id if business entity is 8 or 9
         if (in_array($ticketData['business_entity_id'], [8, 9]) && $request->has('aggregatorId')) {
             $ticketData['aggregator_id'] = $request->aggregatorId;
         }
-        
+
         $orbitData = in_array($ticketData['business_entity_id'], [8, 9])
             ? [
                 'ticket_number'      => $ticketNumber,
@@ -4346,7 +4346,7 @@ class TicketController extends Controller
                 'aggregator_id'      => $request->aggregatorId ?? null,
             ]
             : null;
-        
+
         // ✅ INSERT INTO ticket_assign_team_logs
         try {
             TicketAssignTeamLog::create([
@@ -4361,18 +4361,18 @@ class TicketController extends Controller
                 500
             );
         }
-        
+
         // ✅ FIRST RESPONSE SLA LOGIC
         try {
             $firstResConfig = FirstResConfig::where('team_id', $teamId)->first();
-            
+
             if ($firstResConfig) {
                 FirstResSla::create([
                     'ticket_number'       => $ticketNumber,
                     'first_res_config_id' => $firstResConfig->id,
                     'sla_status'          => 2,
                 ]);
-                
+
                 FirstResSlaHistory::create([
                     'ticket_number'       => $ticketNumber,
                     'first_res_config_id' => $firstResConfig->id,
@@ -4382,13 +4382,13 @@ class TicketController extends Controller
         } catch (\Exception $e) {
             Log::error('Error creating First Response SLA: ' . $e->getMessage());
         }
-        
+
         // ✅ SERVICE TIME SLA LOGIC
         try {
             // Check if client-specific SLA config exists
             $slaClientConfig = SlaClientConfig::where('client_id', $recentClientId)
                 ->first();
-            
+
             if ($slaClientConfig) {
                 // Client-specific SLA exists
                 SrvTimeClientSla::create([
@@ -4396,7 +4396,7 @@ class TicketController extends Controller
                     'sla_client_config_id' => $slaClientConfig->id,
                     'sla_status'           => 2,
                 ]);
-                
+
                 SrvTimeClientSlaHistory::create([
                     'ticket_number'        => $ticketNumber,
                     'sla_client_config_id' => $slaClientConfig->id,
@@ -4409,14 +4409,14 @@ class TicketController extends Controller
                     ->where('team_id', $teamId)
                     ->where('subcategory_id', $request->subCategory)
                     ->first();
-                
+
                 if ($slaSubcatConfig) {
                     SrvTimeSubcatSla::create([
                         'ticket_number'        => $ticketNumber,
                         'sla_subcat_config_id' => $slaSubcatConfig->id,
                         'sla_status'           => 2,
                     ]);
-                    
+
                     SrvTimeSubcatSlaHistory::create([
                         'ticket_number'        => $ticketNumber,
                         'sla_subcat_config_id' => $slaSubcatConfig->id,
@@ -4427,11 +4427,157 @@ class TicketController extends Controller
         } catch (\Exception $e) {
             Log::error('Error creating Service Time SLA: ' . $e->getMessage());
         }
-        
+
         // 7️⃣ Create ticket
         return TicketInfo::ticketCreatedByClient(
             $ticketData,
             $ccEmail,
+            $attachments,
+            $orbitData
+        );
+    }
+
+    public function createVoiceTicket(Request $request)
+    {
+
+        $recentClientId = Client::createChildClient($request->clientInfo);
+        // return $request->all();
+
+        $teamMapping = TeamMappingForPartner::where('company_id', $request->businessEntity)
+            ->where('subcategory_id', $request->subCategory)
+            ->where('is_active', true)
+            ->first();
+
+        if ($teamMapping) {
+            $teamId = $teamMapping->team_id;
+        } else {
+            $teamId = $map[$request->subCategoryName] ?? null;
+            if (!$teamId) {
+                return ApiResponse::error(
+                    'No team mapping or fallback team found.',
+                    'Error',
+                    422
+                );
+            }
+        }
+
+        $ticketNumber = TicketInfo::ticketNumberGenarate();
+        $attachments = $request->file('attachment', []);
+
+
+        $ticketData = [
+            'ticket_number'      => $ticketNumber,
+            'is_parent'          => 0,
+            'platform_id'        =>  2,
+            'user_id'            => $request->user_id,
+            'status_updated_by'  => $request->user_id,
+            'business_entity_id' => $request->businessEntity,
+            'client_id_helpdesk' => $recentClientId,
+            'client_id_vendor'   => $request->client,
+            'source_id'          => 7,
+            'cat_id'             => $request->category,
+            'subcat_id'          => $request->subCategory,
+            'priority_name'      =>  3,
+            'status_id'          => 1,
+            'team_id'            => $teamId,
+            'note'               => $request->descriptions,
+            'mobile_no'          => $request->mobileNumber,
+        ];
+
+        // Add aggregator_id if business entity is 8 or 9
+        if (in_array($ticketData['business_entity_id'], [8, 9]) && $request->has('aggregatorId')) {
+            $ticketData['aggregator_id'] = $request->aggregatorId;
+        }
+
+        $orbitData = in_array($ticketData['business_entity_id'], [8, 9])
+            ? [
+                'ticket_number'      => $ticketNumber,
+                'client_type'        => $request->clientInfo['clientType'],
+                'client_id_helpdesk' => $recentClientId,
+                'client_id_vendor'   => $request->client,
+                'billing_source'     => $request->clientInfo['billingSource'],
+                'sid_uid'            => $request->sid,
+                'fullname'           => $request->clientInfo['fullName'],
+                'phone'              => $request->clientInfo['primaryEmail'],
+            ]
+            : null;
+
+        // ✅ INSERT INTO ticket_assign_team_logs
+      TicketAssignTeamLog::create([
+                'ticket_number' => $ticketNumber,
+                'assigned_in'   => $teamId,
+                'assigned_out'  => null,
+            ]);
+
+        // ✅ FIRST RESPONSE SLA LOGIC
+        try {
+            $firstResConfig = FirstResConfig::where('team_id', $teamId)->first();
+
+            if ($firstResConfig) {
+                FirstResSla::create([
+                    'ticket_number'       => $ticketNumber,
+                    'first_res_config_id' => $firstResConfig->id,
+                    'sla_status'          => 2,
+                ]);
+
+                FirstResSlaHistory::create([
+                    'ticket_number'       => $ticketNumber,
+                    'first_res_config_id' => $firstResConfig->id,
+                    'sla_status'          => 2,
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error creating First Response SLA: ' . $e->getMessage());
+        }
+
+        // ✅ SERVICE TIME SLA LOGIC
+        try {
+            // Check if client-specific SLA config exists
+            $slaClientConfig = SlaClientConfig::where('client_id', $recentClientId)
+                ->first();
+
+            if ($slaClientConfig) {
+                // Client-specific SLA exists
+                SrvTimeClientSla::create([
+                    'ticket_number'        => $ticketNumber,
+                    'sla_client_config_id' => $slaClientConfig->id,
+                    'sla_status'           => 2,
+                ]);
+
+                SrvTimeClientSlaHistory::create([
+                    'ticket_number'        => $ticketNumber,
+                    'sla_client_config_id' => $slaClientConfig->id,
+                    'sla_status'           => 2,
+                    // 'created_at'           => now(),
+                ]);
+            } else {
+                // Check for subcategory-specific SLA config
+                $slaSubcatConfig = SlaSubcatConfig::where('business_entity_id', $request->businessEntity)
+                    ->where('team_id', $teamId)
+                    ->where('subcategory_id', $request->subCategory)
+                    ->first();
+
+                if ($slaSubcatConfig) {
+                    SrvTimeSubcatSla::create([
+                        'ticket_number'        => $ticketNumber,
+                        'sla_subcat_config_id' => $slaSubcatConfig->id,
+                        'sla_status'           => 2,
+                    ]);
+
+                    SrvTimeSubcatSlaHistory::create([
+                        'ticket_number'        => $ticketNumber,
+                        'sla_subcat_config_id' => $slaSubcatConfig->id,
+                        'sla_status'           => 2,
+                    ]);
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Error creating Service Time SLA: ' . $e->getMessage());
+        }
+
+        // 7️⃣ Create ticket
+        return TicketInfo::ticketCreatedByVoice(
+            $ticketData,
             $attachments,
             $orbitData
         );
@@ -4486,7 +4632,7 @@ class TicketController extends Controller
         $isInternal   = $request->isInternal;
         $attachments = $request->file('attachedFile', []);
 
-        
+
         // ===============================
         // 2. LOAD DATA
         // ===============================
@@ -4537,13 +4683,13 @@ class TicketController extends Controller
 
         // ===============================
         // 9. Assign In / Out
-        
+
         TicketAssignTeamLog::create([
             'ticket_number' => $ticketNumber,
             'assigned_in'   => $teamId,
             'assigned_out'  => $outTeamId,
         ]);
-        
+
         if($agentId){
           TicketAssignAgentLog::create([
             'ticket_number' => $ticketNumber,
@@ -4551,7 +4697,7 @@ class TicketController extends Controller
             'assigned_out'  => $outAgentId,
         ]);
         }
-        
+
 
 
             DB::commit();
@@ -4736,7 +4882,7 @@ class TicketController extends Controller
     }
 
 
-   
+
 
     public function statusChanged_forcloseEmail($status, $ticketNo, $userId)
     {
@@ -4784,10 +4930,10 @@ class TicketController extends Controller
                     if ($ticketStatus == 4) {
                         // Delete First Response SLA
                         FirstResSla::where('ticket_number', $ticketNumber)->delete();
-                        
+
                         // Delete Service Time Client SLA (if exists)
                         SrvTimeClientSla::where('ticket_number', $ticketNumber)->delete();
-                        
+
                         // Delete Service Time Subcategory SLA
                         SrvTimeSubcatSla::where('ticket_number', $ticketNumber)->delete();
 
@@ -4804,7 +4950,7 @@ class TicketController extends Controller
                     elseif ($ticketStatus == 1 && $ticket->status_id == 4) {
                         // Recreate First Response SLA using your existing function
                         TicketInfo::recreateFirstResponseSlaOnReopen($ticketNumber);
-                        
+
                         // Recreate Service Time SLA using your existing function
                         TicketInfo::recreateServiceTimeSlaOnReopen($ticketNumber);
 
@@ -4820,7 +4966,7 @@ class TicketController extends Controller
                     // If status is closed (6), process SLA and migrate to CloseTicket
                     elseif ($ticketStatus == 6) {
                         TicketInfo::processFirstResponseSla($ticketNumber, $ticket->updated_at);
-                        
+
                         $clientSla = SrvTimeClientSla::where('ticket_number', $ticketNumber)->first();
                         if($clientSla) {
                             TicketInfo::serviceTimeSlaClient($ticketNumber, $ticket->updated_at);
@@ -4845,7 +4991,7 @@ class TicketController extends Controller
 
                         // Delete from OpenTicket table
                         $ticket->delete();
-                    } 
+                    }
                     // For any other status, just update the OpenTicket
                     else {
                         // Update the OpenTicket with new status
@@ -5170,10 +5316,10 @@ class TicketController extends Controller
             if ($ticket) {
                 // If ticket exists in CloseTicket, migrate back to OpenTicket
                 if ($ticketStatus == 1) { // Status 1 = Open/Reopened
-                    
+
                     // Prepare ticket data for reopening
                     $ticketData = $ticket->toArray();
-                    
+
                     // Update the status and reopened by info
                     $ticketData['status_id'] = $ticketStatus;
                     $ticketData['status_update_by'] = $reopenedBy;
@@ -5298,7 +5444,7 @@ class TicketController extends Controller
     //         // foreach ($attachments as $file) {
     //             TicketInfo::storeCommentAttachment($attachments, $comment, $ticketNumber);
     //         // }
-            
+
     //         $ticket = OpenTicket::where('ticket_number', $ticketNumber)->first();
     //         if (!$ticket) {
     //             return ApiResponse::error("Ticket not found", "Error", 404);
@@ -5347,7 +5493,7 @@ class TicketController extends Controller
             }
 
             TicketInfo::commentFirstResponseSla($ticketNumber, $ticket->updated_at);
-           
+
 
             // ✅ Call sendTicketEmailForComment, passing isInternal from request
             self::sendTicketEmailForComment($ticket, $teamId, [], (int) $isInternal);
@@ -5542,7 +5688,7 @@ class TicketController extends Controller
         try {
 
 
-            $comments = DB::select("SELECT 
+            $comments = DB::select("SELECT
             tc.id,
             tc.ticket_number,
             tc.user_id,
@@ -5554,37 +5700,37 @@ class TicketController extends Controller
             tc.created_at,
             tc.updated_at,
             CASE
-                WHEN TIMESTAMPDIFF(SECOND, tc.created_at, NOW()) < 60 THEN 'Just Now' 
-                WHEN TIMESTAMPDIFF(MINUTE, tc.created_at, NOW()) < 60 THEN 
-                    CONCAT(TIMESTAMPDIFF(MINUTE, tc.created_at, NOW()), ' minute', 
-                        IF(TIMESTAMPDIFF(MINUTE, tc.created_at, NOW()) > 1, 's', ''), ' ago')  
-                WHEN TIMESTAMPDIFF(HOUR, tc.created_at, NOW()) < 24 THEN 
-                    CONCAT(TIMESTAMPDIFF(HOUR, tc.created_at, NOW()), ' hour', 
-                        IF(TIMESTAMPDIFF(HOUR, tc.created_at, NOW()) > 1, 's', ''), ' ago') 
+                WHEN TIMESTAMPDIFF(SECOND, tc.created_at, NOW()) < 60 THEN 'Just Now'
+                WHEN TIMESTAMPDIFF(MINUTE, tc.created_at, NOW()) < 60 THEN
+                    CONCAT(TIMESTAMPDIFF(MINUTE, tc.created_at, NOW()), ' minute',
+                        IF(TIMESTAMPDIFF(MINUTE, tc.created_at, NOW()) > 1, 's', ''), ' ago')
+                WHEN TIMESTAMPDIFF(HOUR, tc.created_at, NOW()) < 24 THEN
+                    CONCAT(TIMESTAMPDIFF(HOUR, tc.created_at, NOW()), ' hour',
+                        IF(TIMESTAMPDIFF(HOUR, tc.created_at, NOW()) > 1, 's', ''), ' ago')
                 WHEN TIMESTAMPDIFF(DAY, tc.created_at, NOW()) < 365 THEN
-                    CONCAT(TIMESTAMPDIFF(DAY, tc.created_at, NOW()), ' day', 
-                        IF(TIMESTAMPDIFF(DAY, tc.created_at, NOW()) > 1, 's', ''), ' ago') 
-                ELSE 
-                    CONCAT(TIMESTAMPDIFF(YEAR, tc.created_at, NOW()), ' year', 
-                        IF(TIMESTAMPDIFF(YEAR, tc.created_at, NOW()) > 1, 's', ''), ' ago') 
+                    CONCAT(TIMESTAMPDIFF(DAY, tc.created_at, NOW()), ' day',
+                        IF(TIMESTAMPDIFF(DAY, tc.created_at, NOW()) > 1, 's', ''), ' ago')
+                ELSE
+                    CONCAT(TIMESTAMPDIFF(YEAR, tc.created_at, NOW()), ' year',
+                        IF(TIMESTAMPDIFF(YEAR, tc.created_at, NOW()) > 1, 's', ''), ' ago')
             END AS comment_age,
             u.fullname,
             GROUP_CONCAT(DISTINCT tca.url) AS attachment_urls,
             GROUP_CONCAT(DISTINCT t.team_name) AS team_names
-        FROM 
-            helpdesk.ticket_comments tc 
-        JOIN 
+        FROM
+            helpdesk.ticket_comments tc
+        JOIN
             helpdesk.user_profiles u ON tc.user_id = u.user_id
-        LEFT JOIN 
+        LEFT JOIN
             helpdesk.ticket_comment_attachments tca ON tc.id = tca.comment_id
-        LEFT JOIN 
+        LEFT JOIN
             helpdesk.user_team_mappings utm ON utm.user_id = tc.user_id
-        LEFT JOIN 
+        LEFT JOIN
             helpdesk.teams t ON utm.team_id = t.id
-        WHERE 
+        WHERE
             tc.ticket_number = '$id'
-        GROUP BY 
-            tc.id, u.fullname, 
+        GROUP BY
+            tc.id, u.fullname,
             tc.ticket_number,
             tc.user_id,
             tc.team_id,
@@ -5594,7 +5740,7 @@ class TicketController extends Controller
             tc.is_rca,
             tc.created_at,
             tc.updated_at
-        ORDER BY 
+        ORDER BY
             tc.created_at DESC
         ");
 
@@ -5617,24 +5763,24 @@ class TicketController extends Controller
                 t.cat_id, cat.category_in_english,cat.category_in_bangla,
                 t.subcat_id,subcat.sub_category_in_english,subcat.sub_category_in_bangla,
                 t.team_id,teams.team_name,
-                CASE 
-                WHEN TIMESTAMPDIFF(SECOND, t.created_at, NOW()) < 60 THEN 
+                CASE
+                WHEN TIMESTAMPDIFF(SECOND, t.created_at, NOW()) < 60 THEN
         'Just now'
-        WHEN TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) < 60 THEN 
+        WHEN TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) < 60 THEN
             CONCAT(TIMESTAMPDIFF(MINUTE, t.created_at, NOW()), ' minutes ago')
-        WHEN TIMESTAMPDIFF(HOUR, t.created_at, NOW()) < 24 THEN 
+        WHEN TIMESTAMPDIFF(HOUR, t.created_at, NOW()) < 24 THEN
             CONCAT(TIMESTAMPDIFF(HOUR, t.created_at, NOW()), ' hours ago')
-        ELSE 
+        ELSE
             CONCAT(TIMESTAMPDIFF(DAY, t.created_at, NOW()), ' days ago')
         END AS ticket_age,
-        CASE 
-        WHEN TIMESTAMPDIFF(SECOND, c.created_at, NOW()) < 60 THEN 
+        CASE
+        WHEN TIMESTAMPDIFF(SECOND, c.created_at, NOW()) < 60 THEN
         'Just now'
-        WHEN TIMESTAMPDIFF(MINUTE, c.created_at, NOW()) < 60 THEN 
+        WHEN TIMESTAMPDIFF(MINUTE, c.created_at, NOW()) < 60 THEN
             CONCAT(TIMESTAMPDIFF(MINUTE, c.created_at, NOW()), ' minutes ago')
-        WHEN TIMESTAMPDIFF(HOUR, c.created_at, NOW()) < 24 THEN 
+        WHEN TIMESTAMPDIFF(HOUR, c.created_at, NOW()) < 24 THEN
             CONCAT(TIMESTAMPDIFF(HOUR, c.created_at, NOW()), ' hours ago')
-        ELSE 
+        ELSE
             CONCAT(TIMESTAMPDIFF(DAY, c.created_at, NOW()), ' days ago')
         END AS comment_age
                 FROM helpdesk.ticket_comments c
@@ -5657,24 +5803,24 @@ class TicketController extends Controller
                 t.cat_id, cat.category_in_english,cat.category_in_bangla,
                 t.subcat_id,subcat.sub_category_in_english,subcat.sub_category_in_bangla,
                 t.team_id,teams.team_name,
-                CASE 
-                WHEN TIMESTAMPDIFF(SECOND, t.created_at, NOW()) < 60 THEN 
+                CASE
+                WHEN TIMESTAMPDIFF(SECOND, t.created_at, NOW()) < 60 THEN
                             'Just now'
-                            WHEN TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) < 60 THEN 
+                            WHEN TIMESTAMPDIFF(MINUTE, t.created_at, NOW()) < 60 THEN
                                 CONCAT(TIMESTAMPDIFF(MINUTE, t.created_at, NOW()), ' minutes ago')
-                            WHEN TIMESTAMPDIFF(HOUR, t.created_at, NOW()) < 24 THEN 
+                            WHEN TIMESTAMPDIFF(HOUR, t.created_at, NOW()) < 24 THEN
                                 CONCAT(TIMESTAMPDIFF(HOUR, t.created_at, NOW()), ' hours ago')
-                            ELSE 
+                            ELSE
                                 CONCAT(TIMESTAMPDIFF(DAY, t.created_at, NOW()), ' days ago')
                             END AS ticket_age,
-                            CASE 
-                            WHEN TIMESTAMPDIFF(SECOND, c.created_at, NOW()) < 60 THEN 
+                            CASE
+                            WHEN TIMESTAMPDIFF(SECOND, c.created_at, NOW()) < 60 THEN
                             'Just now'
-                            WHEN TIMESTAMPDIFF(MINUTE, c.created_at, NOW()) < 60 THEN 
+                            WHEN TIMESTAMPDIFF(MINUTE, c.created_at, NOW()) < 60 THEN
                                 CONCAT(TIMESTAMPDIFF(MINUTE, c.created_at, NOW()), ' minutes ago')
-                            WHEN TIMESTAMPDIFF(HOUR, c.created_at, NOW()) < 24 THEN 
+                            WHEN TIMESTAMPDIFF(HOUR, c.created_at, NOW()) < 24 THEN
                                 CONCAT(TIMESTAMPDIFF(HOUR, c.created_at, NOW()), ' hours ago')
-                            ELSE 
+                            ELSE
                                 CONCAT(TIMESTAMPDIFF(DAY, c.created_at, NOW()), ' days ago')
                             END AS comment_age
                                     FROM helpdesk.ticket_comments c
@@ -5819,7 +5965,7 @@ class TicketController extends Controller
 
 
 
-    
+
 
     public function getTicketDetailsByTicket($id)
     {
@@ -5841,10 +5987,10 @@ class TicketController extends Controller
             LEFT JOIN users AS u2 ON th.status_updated_by = u2.id
             LEFT JOIN user_team_mappings AS utm ON th.status_updated_by = utm.user_id
             LEFT JOIN helpdesk.teams AS t1 ON utm.team_id = t1.id
-            LEFT JOIN helpdesk.ticket_comments AS tc ON th.ticket_number = tc.ticket_number 
-                AND tc.user_id = th.status_updated_by 
+            LEFT JOIN helpdesk.ticket_comments AS tc ON th.ticket_number = tc.ticket_number
+                AND tc.user_id = th.status_updated_by
                 AND th.updated_at = tc.updated_at
-						
+
 						LEFT JOIN helpdesk.sla_subcat_configs AS ssc
                 ON ssc.business_entity_id = th.business_entity_id
                 AND ssc.team_id = th.team_id
@@ -5855,8 +6001,8 @@ class TicketController extends Controller
                 AND ssh.sla_subcat_config_id = ssc.id
 
             WHERE th.ticket_number = '$ticketNumbers'
-            GROUP BY th.ticket_number, c.company_name, departs.department_name, t.team_name, 
-                ucm.client_name, cat.category_in_english, scat.sub_category_in_english, st.status_name, 
+            GROUP BY th.ticket_number, c.company_name, departs.department_name, t.team_name,
+                ucm.client_name, cat.category_in_english, scat.sub_category_in_english, st.status_name,
                 th.updated_at, th.created_at,srv_time_str, srv_time_status_name
 
             UNION ALL
@@ -5871,9 +6017,9 @@ class TicketController extends Controller
             LEFT JOIN helpdesk.teams AS t1 ON tc.team_id = t1.id
             LEFT JOIN helpdesk.user_client_mappings AS ucm ON tc.user_id = ucm.user_id
             WHERE tc.ticket_number = '$ticketNumbers'
-                AND NOT EXISTS (SELECT 1 
-                    FROM helpdesk.ticket_histories AS th 
-                    WHERE th.ticket_number = tc.ticket_number 
+                AND NOT EXISTS (SELECT 1
+                    FROM helpdesk.ticket_histories AS th
+                    WHERE th.ticket_number = tc.ticket_number
                     AND th.updated_at = tc.created_at
                 )
             GROUP BY tc.ticket_number, tc.created_at) AS combined_query"))
@@ -5936,7 +6082,7 @@ class TicketController extends Controller
             //     ', updated_at' . $ticket->updated_at .
             //     ', ticket_age' . $ticket->time_difference .
             //     ', srv_time_min ' . $ticket->srv_time_min.
-            //     ', sla_status' . $ticket->srv_time_status_name;  
+            //     ', sla_status' . $ticket->srv_time_status_name;
 
             // $levelCounter++;
 
@@ -5989,7 +6135,7 @@ class TicketController extends Controller
 
             if ($request->sid) {
                 $results = DB::select("SELECT t.id, t.ticket_number, t.cat_id, c.category_in_english, t.subcat_id, sc.sub_category_in_english
-                ,t.created_at 
+                ,t.created_at
                 FROM helpdesk.tickets t
                 JOIN helpdesk.categories c ON t.cat_id = c.id
                 JOIN helpdesk.sub_categories sc ON t.subcat_id = sc.id
@@ -6063,7 +6209,7 @@ class TicketController extends Controller
 
             if ($request->sid) {
                 $openResults = DB::select("SELECT t.id, t.ticket_number, t.cat_id, c.category_in_english, t.subcat_id, sc.sub_category_in_english
-                ,t.created_at 
+                ,t.created_at
                 FROM helpdesk.open_tickets t
                 JOIN helpdesk.categories c ON t.cat_id = c.id
                 JOIN helpdesk.sub_categories sc ON t.subcat_id = sc.id
@@ -6072,7 +6218,7 @@ class TicketController extends Controller
                 ORDER BY t.created_at desc
                 LIMIT 5");
                 $closedResults = DB::select("SELECT t.id, t.ticket_number, t.cat_id, c.category_in_english, t.subcat_id, sc.sub_category_in_english
-                ,t.created_at 
+                ,t.created_at
                 FROM helpdesk.close_tickets t
                 JOIN helpdesk.categories c ON t.cat_id = c.id
                 JOIN helpdesk.sub_categories sc ON t.subcat_id = sc.id
@@ -6182,7 +6328,7 @@ class TicketController extends Controller
         // ✅ FIX: Handle 'response' and 'resolved' separately
         $response = null;
         $resolved = null;
-        
+
         if ($request->slaMissed === 'response') {
             $response = 0; // First Response SLA failed
         } elseif ($request->slaMissed === 'resolved') {
@@ -6379,7 +6525,7 @@ class TicketController extends Controller
                     !empty($p['team1']) && empty($p['team']) && !empty($p['fromDate']) &&
                     !empty($p['toDate']) && $p['response'] !== null && $p['resolved'] === null &&
                     empty($p['ticketNumber']) && empty($p['aggregatorId']),
-                'where' => !empty($teamIdList) 
+                'where' => !empty($teamIdList)
                     ? "WHERE t.business_entity_id = ? AND DATE(t.created_at) BETWEEN ? AND ? AND t.team_id IN ({$teamIdList}) AND frsh.sla_status = ?"
                     : "WHERE t.business_entity_id = ? AND DATE(t.created_at) BETWEEN ? AND ? AND t.team_id = ? AND frsh.sla_status = ?",
                 'bindings' => !empty($teamIdList)
@@ -6493,7 +6639,7 @@ class TicketController extends Controller
             //         empty($p['team']) && empty($p['team1']) && empty($p['fromDate']) &&
             //         empty($p['toDate']) && $p['response'] === null && $p['resolved'] === null &&
             //         empty($p['ticketNumber']) && empty($p['aggregatorId']) && !empty($p['orbit']),
-            //     'where' => $p['orbit'] === 'SID' 
+            //     'where' => $p['orbit'] === 'SID'
             //         ? "WHERE t.business_entity_id = 8 AND t.sid IS NOT NULL"
             //         : ($p['orbit'] === 'ENTITY' ? "WHERE t.business_entity_id = 8 AND t.sid IS NULL" : "WHERE 1=1"),
             //     'bindings' => []
@@ -6506,7 +6652,7 @@ class TicketController extends Controller
                     empty($p['team']) && empty($p['team1']) && empty($p['fromDate']) &&
                     empty($p['toDate']) && $p['response'] === null && $p['resolved'] === null &&
                     empty($p['ticketNumber']) && empty($p['aggregatorId']) && !empty($p['orbit']),
-                'where' => $p['orbit'] === 'SID' 
+                'where' => $p['orbit'] === 'SID'
                     ? "WHERE t.business_entity_id = 8 AND tor.sid_uid IS NOT NULL"
                     : ($p['orbit'] === 'ENTITY' ? "WHERE t.business_entity_id = 8 AND tor.sid_uid IS NULL" : "WHERE 1=1"),
                 'bindings' => []
@@ -6612,7 +6758,7 @@ class TicketController extends Controller
                 'where' => "WHERE t.client_id_helpdesk = ?",
                 'bindings' => [(int)$p['client']]
             ],
-            
+
             // Pattern 20B: Status + businessEntity + client filter
             [
                 'check' => !empty($p['businessEntity']) && !empty($p['client']) && !empty($p['statusName']) &&
@@ -6621,7 +6767,7 @@ class TicketController extends Controller
                 'where' => "WHERE t.business_entity_id = ? AND t.client_id_helpdesk = ?",
                 'bindings' => [$p['businessEntity'], (int)$p['client']]
             ],
-            
+
             // Pattern 20C: Status + businessEntity + client + date range
             [
                 'check' => !empty($p['businessEntity']) && !empty($p['client']) && !empty($p['statusName']) &&
@@ -6719,8 +6865,8 @@ class TicketController extends Controller
 
     private function getBaseAgentSQL($ticketTable, $statusIdList)
     {
-        return "SELECT 
-            t.id, 
+        return "SELECT
+            t.id,
             t.ticket_number,
             CASE
                 WHEN up.user_type = 'Agent' THEN CONCAT(t.ticket_number, ' - Agent')
@@ -6739,47 +6885,47 @@ class TicketController extends Controller
                 ELSE NULL
             END AS user_identifier,
             up.user_type,
-            t.user_id, 
+            t.user_id,
             up.fullname,
             up.email_primary,
-            CASE 
+            CASE
                 WHEN frsh.sla_status = 2 THEN 'Started'
                 WHEN frsh.sla_status = 1 THEN 'Success'
                 WHEN frsh.sla_status = 0 THEN 'Failed'
                 ELSE NULL
             END AS fr_response_status,
-            CASE 
+            CASE
                 WHEN sth.sla_status = 2 THEN 'Started'
                 WHEN sth.sla_status = 1 THEN 'Success'
                 WHEN sth.sla_status = 0 THEN 'Failed'
                 ELSE NULL
             END AS srv_response_status,
-            CASE 
+            CASE
                 WHEN stsh.sla_status = 2 THEN 'Started'
                 WHEN stsh.sla_status = 1 THEN 'Success'
                 WHEN stsh.sla_status = 0 THEN 'Failed'
                 ELSE NULL
             END AS srv_client_response_status,
-            t.business_entity_id, 
-            c.company_name, 
-            t.team_id, 
-            teams.team_name, 
-            t.cat_id, 
-            categories.category_in_english, 
-            t.subcat_id, 
+            t.business_entity_id,
+            c.company_name,
+            t.team_id,
+            teams.team_name,
+            t.cat_id,
+            categories.category_in_english,
+            t.subcat_id,
             sub_categories.sub_category_in_english,
-            t.status_id, 
-            statuses.status_name, 
-            t.created_at, 
+            t.status_id,
+            statuses.status_name,
+            t.created_at,
             t.updated_at,
             CONCAT(
-                TIMESTAMPDIFF(DAY, t.created_at, IF('{$ticketTable}' = 'close_tickets', t.updated_at, NOW())), 'd ', 
-                TIMESTAMPDIFF(HOUR, t.created_at, IF('{$ticketTable}' = 'close_tickets', t.updated_at, NOW())) % 24, 'h ', 
+                TIMESTAMPDIFF(DAY, t.created_at, IF('{$ticketTable}' = 'close_tickets', t.updated_at, NOW())), 'd ',
+                TIMESTAMPDIFF(HOUR, t.created_at, IF('{$ticketTable}' = 'close_tickets', t.updated_at, NOW())) % 24, 'h ',
                 TIMESTAMPDIFF(MINUTE, t.created_at, IF('{$ticketTable}' = 'close_tickets', t.updated_at, NOW())) % 60, 'm '
             ) AS ticket_age,
             u.username AS created_by,
             u2.username AS status_updated_by,
-            a.name AS aggregator_name, 
+            a.name AS aggregator_name,
             p.platform_name,
             t.client_id_helpdesk,
             raised_for_profile.fullname AS raised_for,
@@ -6795,7 +6941,7 @@ class TicketController extends Controller
             COALESCE(srv_failed.failed_count, 0) AS srv_sla_failed_count,
             COALESCE(stsh_success.success_count, 0) AS srv_client_sla_success_count,
             COALESCE(stsh_failed.failed_count, 0) AS srv_client_sla_failed_count,
-            CASE 
+            CASE
                 WHEN mt.child_exists = 1 THEN 'Parent'
                 WHEN mt.parent_ticket_number IS NOT NULL THEN 'Child'
                 ELSE NULL
@@ -6815,12 +6961,12 @@ class TicketController extends Controller
         LEFT JOIN categories ON t.cat_id = categories.id
         LEFT JOIN sub_categories sub_categories ON t.subcat_id = sub_categories.id
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 sla_status
             FROM first_res_sla_histories
             WHERE (ticket_number, id) IN (
-                SELECT 
+                SELECT
                     ticket_number,
                     MAX(id)
                 FROM first_res_sla_histories
@@ -6828,12 +6974,12 @@ class TicketController extends Controller
             )
         ) frsh ON t.ticket_number = frsh.ticket_number
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 sla_status
             FROM srv_time_subcat_sla_histories
             WHERE (ticket_number, id) IN (
-                SELECT 
+                SELECT
                     ticket_number,
                     MAX(id)
                 FROM srv_time_subcat_sla_histories
@@ -6841,12 +6987,12 @@ class TicketController extends Controller
             )
         ) sth ON t.ticket_number = sth.ticket_number
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 sla_status
             FROM srv_time_client_sla_histories
             WHERE (ticket_number, id) IN (
-                SELECT 
+                SELECT
                     ticket_number,
                     MAX(id)
                 FROM srv_time_client_sla_histories
@@ -6859,12 +7005,12 @@ class TicketController extends Controller
         LEFT JOIN ticket_orbits tor ON t.ticket_number = tor.ticket_number
         LEFT JOIN ticket_division_districts tdd ON t.ticket_number = tdd.ticket_number
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 comments
             FROM ticket_comments
             WHERE (ticket_number, created_at) IN (
-                SELECT 
+                SELECT
                     ticket_number,
                     MAX(created_at)
                 FROM ticket_comments
@@ -6872,7 +7018,7 @@ class TicketController extends Controller
             )
         ) lc ON t.ticket_number = lc.ticket_number
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 COUNT(*) AS success_count
             FROM first_res_sla_histories
@@ -6880,7 +7026,7 @@ class TicketController extends Controller
             GROUP BY ticket_number
         ) fr_success ON t.ticket_number = fr_success.ticket_number
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 COUNT(*) AS failed_count
             FROM first_res_sla_histories
@@ -6888,7 +7034,7 @@ class TicketController extends Controller
             GROUP BY ticket_number
         ) fr_failed ON t.ticket_number = fr_failed.ticket_number
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 COUNT(*) AS success_count
             FROM srv_time_subcat_sla_histories
@@ -6896,7 +7042,7 @@ class TicketController extends Controller
             GROUP BY ticket_number
         ) srv_success ON t.ticket_number = srv_success.ticket_number
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 COUNT(*) AS failed_count
             FROM srv_time_subcat_sla_histories
@@ -6904,7 +7050,7 @@ class TicketController extends Controller
             GROUP BY ticket_number
         ) srv_failed ON t.ticket_number = srv_failed.ticket_number
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 COUNT(*) AS success_count
             FROM srv_time_client_sla_histories
@@ -6912,7 +7058,7 @@ class TicketController extends Controller
             GROUP BY ticket_number
         ) stsh_success ON t.ticket_number = stsh_success.ticket_number
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 COUNT(*) AS failed_count
             FROM srv_time_client_sla_histories
@@ -6926,7 +7072,7 @@ class TicketController extends Controller
     private function getBaseClientSQL($ticketTable, $statusIdList)
     {
         return "SELECT DISTINCT
-            t.id, 
+            t.id,
             t.ticket_number,
             CASE
                 WHEN up.user_type = 'Agent' THEN CONCAT(t.ticket_number, ' - Agent')
@@ -6945,47 +7091,47 @@ class TicketController extends Controller
                 ELSE NULL
             END AS user_identifier,
             up.user_type,
-            t.user_id, 
+            t.user_id,
             up.fullname,
             up.email_primary,
-            CASE 
+            CASE
                 WHEN frsh.sla_status = 2 THEN 'Started'
                 WHEN frsh.sla_status = 1 THEN 'Success'
                 WHEN frsh.sla_status = 0 THEN 'Failed'
                 ELSE NULL
             END AS fr_response_status,
-            CASE 
+            CASE
                 WHEN sth.sla_status = 2 THEN 'Started'
                 WHEN sth.sla_status = 1 THEN 'Success'
                 WHEN sth.sla_status = 0 THEN 'Failed'
                 ELSE NULL
             END AS srv_response_status,
-            CASE 
+            CASE
                 WHEN stsh.sla_status = 2 THEN 'Started'
                 WHEN stsh.sla_status = 1 THEN 'Success'
                 WHEN stsh.sla_status = 0 THEN 'Failed'
                 ELSE NULL
             END AS srv_client_response_status,
-            t.business_entity_id, 
-            c.company_name, 
-            t.team_id, 
-            teams.team_name, 
-            t.cat_id, 
-            categories.category_in_english, 
-            t.subcat_id, 
+            t.business_entity_id,
+            c.company_name,
+            t.team_id,
+            teams.team_name,
+            t.cat_id,
+            categories.category_in_english,
+            t.subcat_id,
             sub_categories.sub_category_in_english,
-            t.status_id, 
-            statuses.status_name, 
-            t.created_at, 
+            t.status_id,
+            statuses.status_name,
+            t.created_at,
             t.updated_at,
             CONCAT(
-                TIMESTAMPDIFF(DAY, t.created_at, IF('{$ticketTable}' = 'close_tickets', t.updated_at, NOW())), 'd ', 
-                TIMESTAMPDIFF(HOUR, t.created_at, IF('{$ticketTable}' = 'close_tickets', t.updated_at, NOW())) % 24, 'h ', 
+                TIMESTAMPDIFF(DAY, t.created_at, IF('{$ticketTable}' = 'close_tickets', t.updated_at, NOW())), 'd ',
+                TIMESTAMPDIFF(HOUR, t.created_at, IF('{$ticketTable}' = 'close_tickets', t.updated_at, NOW())) % 24, 'h ',
                 TIMESTAMPDIFF(MINUTE, t.created_at, IF('{$ticketTable}' = 'close_tickets', t.updated_at, NOW())) % 60, 'm '
             ) AS ticket_age,
             u.username AS created_by,
             u2.username AS status_updated_by,
-            a.name AS aggregator_name, 
+            a.name AS aggregator_name,
             p.platform_name,
             t.client_id_helpdesk,
             raised_for_profile.fullname AS raised_for,
@@ -7000,7 +7146,7 @@ class TicketController extends Controller
             COALESCE(srv_failed.failed_count, 0) AS srv_sla_failed_count,
             COALESCE(stsh_success.success_count, 0) AS srv_client_sla_success_count,
             COALESCE(stsh_failed.failed_count, 0) AS srv_client_sla_failed_count,
-            CASE 
+            CASE
                 WHEN mt.child_exists = 1 THEN 'Parent'
                 WHEN mt.parent_ticket_number IS NOT NULL THEN 'Child'
                 ELSE NULL
@@ -7019,12 +7165,12 @@ class TicketController extends Controller
         LEFT JOIN categories ON t.cat_id = categories.id
         LEFT JOIN sub_categories sub_categories ON t.subcat_id = sub_categories.id
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 sla_status
             FROM first_res_sla_histories
             WHERE (ticket_number, id) IN (
-                SELECT 
+                SELECT
                     ticket_number,
                     MAX(id)
                 FROM first_res_sla_histories
@@ -7032,12 +7178,12 @@ class TicketController extends Controller
             )
         ) frsh ON t.ticket_number = frsh.ticket_number
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 sla_status
             FROM srv_time_subcat_sla_histories
             WHERE (ticket_number, id) IN (
-                SELECT 
+                SELECT
                     ticket_number,
                     MAX(id)
                 FROM srv_time_subcat_sla_histories
@@ -7045,12 +7191,12 @@ class TicketController extends Controller
             )
         ) sth ON t.ticket_number = sth.ticket_number
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 sla_status
             FROM srv_time_client_sla_histories
             WHERE (ticket_number, id) IN (
-                SELECT 
+                SELECT
                     ticket_number,
                     MAX(id)
                 FROM srv_time_client_sla_histories
@@ -7063,12 +7209,12 @@ class TicketController extends Controller
         LEFT JOIN ticket_orbits tor ON t.ticket_number = tor.ticket_number
         LEFT JOIN ticket_division_districts tdd ON t.ticket_number = tdd.ticket_number
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 comments
             FROM ticket_comments
             WHERE (ticket_number, created_at) IN (
-                SELECT 
+                SELECT
                     ticket_number,
                     MAX(created_at)
                 FROM ticket_comments
@@ -7076,7 +7222,7 @@ class TicketController extends Controller
             )
         ) lc ON t.ticket_number = lc.ticket_number
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 COUNT(*) AS success_count
             FROM first_res_sla_histories
@@ -7084,7 +7230,7 @@ class TicketController extends Controller
             GROUP BY ticket_number
         ) fr_success ON t.ticket_number = fr_success.ticket_number
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 COUNT(*) AS failed_count
             FROM first_res_sla_histories
@@ -7092,7 +7238,7 @@ class TicketController extends Controller
             GROUP BY ticket_number
         ) fr_failed ON t.ticket_number = fr_failed.ticket_number
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 COUNT(*) AS success_count
             FROM srv_time_subcat_sla_histories
@@ -7100,7 +7246,7 @@ class TicketController extends Controller
             GROUP BY ticket_number
         ) srv_success ON t.ticket_number = srv_success.ticket_number
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 COUNT(*) AS failed_count
             FROM srv_time_subcat_sla_histories
@@ -7108,7 +7254,7 @@ class TicketController extends Controller
             GROUP BY ticket_number
         ) srv_failed ON t.ticket_number = srv_failed.ticket_number
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 COUNT(*) AS success_count
             FROM srv_time_client_sla_histories
@@ -7116,7 +7262,7 @@ class TicketController extends Controller
             GROUP BY ticket_number
         ) stsh_success ON t.ticket_number = stsh_success.ticket_number
         LEFT JOIN (
-            SELECT 
+            SELECT
                 ticket_number,
                 COUNT(*) AS failed_count
             FROM srv_time_client_sla_histories
@@ -7133,7 +7279,7 @@ class TicketController extends Controller
     public function getAggregators()
     {
         $aggregators = DB::select("
-            SELECT a.id, a.name AS aggregator_name 
+            SELECT a.id, a.name AS aggregator_name
             FROM aggregators a
         ");
 
@@ -7148,7 +7294,7 @@ class TicketController extends Controller
     public function getBranches()
     {
         $branches = DB::select("
-            SELECT b.id, b.branch_name 
+            SELECT b.id, b.branch_name
             FROM branches b
         ");
 
@@ -7163,7 +7309,7 @@ class TicketController extends Controller
     public function getDivisions()
     {
         $divisions = DB::select("
-            SELECT DISTINCT tdd.division 
+            SELECT DISTINCT tdd.division
             FROM ticket_division_districts tdd
         ");
 
@@ -7178,7 +7324,7 @@ class TicketController extends Controller
     public function getDistricts()
     {
         $districts = DB::select("
-            SELECT DISTINCT tdd.district 
+            SELECT DISTINCT tdd.district
             FROM ticket_division_districts tdd
         ");
 
@@ -7219,9 +7365,9 @@ class TicketController extends Controller
         }
 
         $agents = DB::select("
-            SELECT up.user_id, up.fullname 
+            SELECT up.user_id, up.fullname
             FROM user_profiles up
-            JOIN user_team_mappings utm 
+            JOIN user_team_mappings utm
                 ON up.user_id = utm.user_id
             WHERE up.user_type = 'agent'
             AND utm.team_id = ?
@@ -7247,8 +7393,8 @@ class TicketController extends Controller
             'data' => $events
         ]);
     }
-    
-    
+
+
 //     public function getPublicTicket($token)
 // {
 //     try {
@@ -7287,7 +7433,7 @@ class TicketController extends Controller
 
     //         // 2️⃣ Basic Info (First history row)
     //         $basicInfo = DB::selectOne("
-    //             SELECT 
+    //             SELECT
     //                 ot.ticket_number,
     //                 ot.created_at,
     //                 ot.note,
@@ -7329,7 +7475,7 @@ class TicketController extends Controller
 
     //         // 3️⃣ Current status (Last history row)
     //         $currentInfo = DB::selectOne("
-    //             SELECT 
+    //             SELECT
     //                 u.username AS updated_by,
     //                 st.status_name,
     //                 ot.updated_at
@@ -7427,7 +7573,7 @@ class TicketController extends Controller
         // 2️⃣ BASIC INFO
         // ===============================
         $basicInfo = DB::selectOne("
-            SELECT 
+            SELECT
                 ot.ticket_number,
                 ot.created_at,
                 ot.note,
@@ -7457,7 +7603,7 @@ class TicketController extends Controller
         // 3️⃣ CURRENT STATUS
         // ===============================
         $currentInfo = DB::selectOne("
-            SELECT 
+            SELECT
                 u.username AS updated_by,
                 st.status_name,
                 ot.updated_at

@@ -228,24 +228,24 @@ class TicketInfo
 
         // Condition 1: current_time > idle_start_time AND current_time < idle_end_time
         // AND ticket_create_time < idle_start_time
-        if ($currentTimeStr > $idleStartTimeStr && $currentTimeStr < $idleEndTimeStr 
+        if ($currentTimeStr > $idleStartTimeStr && $currentTimeStr < $idleEndTimeStr
             && $ticketCreateTimeStr < $idleStartTimeStr) {
-            
+
             $totalDiff = $currentTime->getTimestamp() - $ticketCreateDateTime->getTimestamp();
             $idleDiff = $currentTime->getTimestamp() - $idleStartTime->getTimestamp();
-            
+
             $ageInSeconds = $totalDiff - $idleDiff;
         }
 
         // Condition 2: current_time > idle_start_time AND current_time > idle_end_time
         // AND ticket_create_time < idle_start_time
-        elseif ($currentTimeStr > $idleStartTimeStr && $currentTimeStr > $idleEndTimeStr 
+        elseif ($currentTimeStr > $idleStartTimeStr && $currentTimeStr > $idleEndTimeStr
                 && $ticketCreateTimeStr < $idleStartTimeStr) {
-            
+
             $totalDiff = $currentTime->getTimestamp() - $ticketCreateDateTime->getTimestamp();
             $idleStartDiff = $idleStartTime->getTimestamp() - $idleEndTime->getTimestamp();
             $idleEndDiff = $currentTime->getTimestamp() - $idleEndTime->getTimestamp();
-            
+
             $ageInSeconds = $totalDiff - abs($idleStartDiff) + $idleEndDiff;
 
             // return [$ticketCreateDateTime,$ageInSeconds,$totalDiff,$idleStartDiff,$idleEndDiff,$currentTimeStr,$ticketCreateTimeStr,$idleStartTimeStr,$idleEndTimeStr];
@@ -253,19 +253,19 @@ class TicketInfo
 
         // Condition 3: current_time > idle_start_time AND current_time > idle_end_time
         // AND ticket_create_time > idle_start_time AND ticket_create_time < idle_end_time
-        elseif ($currentTimeStr > $idleStartTimeStr && $currentTimeStr > $idleEndTimeStr 
+        elseif ($currentTimeStr > $idleStartTimeStr && $currentTimeStr > $idleEndTimeStr
                 && $ticketCreateTimeStr > $idleStartTimeStr && $ticketCreateTimeStr < $idleEndTimeStr) {
-            
+
             $idleEndDiff = $currentTime->getTimestamp() - $idleEndTime->getTimestamp();
-            
+
             $ageInSeconds = $idleEndDiff;
         }
 
         // Condition 4: current_time > idle_start_time AND current_time > idle_end_time
         // AND ticket_create_time > idle_start_time AND ticket_create_time > idle_end_time
-        elseif ($currentTimeStr > $idleStartTimeStr && $currentTimeStr > $idleEndTimeStr 
+        elseif ($currentTimeStr > $idleStartTimeStr && $currentTimeStr > $idleEndTimeStr
                 && $ticketCreateTimeStr > $idleStartTimeStr && $ticketCreateTimeStr > $idleEndTimeStr) {
-            
+
             $ageInSeconds = $currentTime->getTimestamp() - $ticketCreateDateTime->getTimestamp();
         }
 
@@ -307,7 +307,7 @@ class TicketInfo
         }
 
         // 3️⃣ Build idle interval(s)
-        // For simplicity assuming 1 idle window per team. 
+        // For simplicity assuming 1 idle window per team.
         // You can extend to multiple idle windows by looping over array
         $idleStart = (clone $ticketCreate)->setTime($team->idle_start_hr, $team->idle_start_min, 0);
         $idleEnd = (clone $ticketCreate)->setTime($team->idle_end_hr, $team->idle_end_min, 0);
@@ -587,7 +587,7 @@ class TicketInfo
     //     }
     // }
 
-  
+
 
 
     public static function ticketCreatedByClient($ticketData, $ccEmail, $attachments, $orbitData)
@@ -706,7 +706,7 @@ class TicketInfo
             self::handleFirstResponseSla($ticketData);
             self::handleServiceTimeSla($ticketData);
             self::handleTicketTracking($ticketData['ticket_number']);
-            
+
 
             DB::commit();
 
@@ -819,7 +819,7 @@ class TicketInfo
 
 
                     foreach ($attachments as $file) {
-        
+
                         $fileExtension = $file->getClientOriginalExtension();
                         $orginalName = $file->getClientOriginalName();
                         $customizeName = time() . '_' . uniqid() . '.' . $fileExtension;
@@ -838,7 +838,7 @@ class TicketInfo
                             'storage_type' => 'local',
                         ]);
                     }
-                
+
     }
 
     private static function handleBusinessEntity($ticketData, $orbitData, $backboneData)
@@ -887,7 +887,45 @@ class TicketInfo
 
     }
 }
-    
+
+
+// voice
+
+public static function ticketCreatedByVoice($ticketData,$attachments, $orbitData)
+    {
+        DB::beginTransaction();
+
+        try {
+            $ticket = OpenTicket::create($ticketData);
+            TicketHistory::create($ticketData);
+
+            if ($orbitData) {
+                TicketOrbit::create($orbitData);
+            }
+
+            foreach ($attachments as $file) {
+                $path = $file->store('ticket_audio', 'public');
+
+                TicketAttachment::create([
+                    'ticket_number' => $ticket->ticket_number,
+                    'name'          => $file->getClientOriginalName(),
+                    'customize_name'=> basename($path),
+                    'size'          => $file->getSize(),
+                    'url'           => 'storage/'.$path,
+                    'mime_type'     => $file->getMimeType(),
+                    'storage_type'  => 'local',
+                ]);
+            }
+
+            DB::commit();
+            return ApiResponse::success([], "Successfully Created", 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return ApiResponse::error($e->getMessage(), "Error", 500);
+        }
+    }
+
 
     // private static function sendTicketEmail($ticket, $teamId, $ccEmail)
     // {
@@ -904,7 +942,7 @@ class TicketInfo
 
     //     $recipientEmail = DB::table('teams')->where('id', $teamId)->value('group_email');
 
-        
+
     //     $additionalEmailsJson = DB::table('teams')->where('id', $teamId)->value('additional_email');
     //     $additionalEmails = [];
     //     if (!empty($additionalEmailsJson)) {
@@ -915,7 +953,7 @@ class TicketInfo
     //     }
     //     $agentEmails = [];
     //     if (!empty($ccEmail)) {
-           
+
     //         $ids = array_values(array_filter($ccEmail, function ($v) {
     //             return is_numeric($v);
     //         }));
@@ -937,20 +975,20 @@ class TicketInfo
     //         }
     //     }
 
-        
+
     //     if (!empty($additionalEmails)) {
     //         $agentEmails = array_merge($agentEmails, $additionalEmails);
     //     }
 
-        
+
     //     $agentEmails = array_filter(array_map('trim', $agentEmails), function ($e) {
     //         return filter_var($e, FILTER_VALIDATE_EMAIL);
     //     });
 
-        
+
     //     $allRecipients = array_filter(array_merge($agentEmails, [$recipientEmail]));
 
-        
+
     //     Log::info('TicketEmail - resolved recipients for ticket '.$ticketNoForEmail['ticket_number'].': ' . implode(',', $allRecipients));
 
     //     $recipient = implode(',', $allRecipients);
@@ -1134,12 +1172,12 @@ class TicketInfo
             'sla_status' => 2,
         ]);
         FirstResSlaHistory::create([
-            'ticket_number' => $ticketData['ticket_number'],    
+            'ticket_number' => $ticketData['ticket_number'],
             'first_res_config_id' => $confiSla->id,
             'sla_status' => 2,
         ]);
         }
-        
+
 
 
         }
@@ -1226,7 +1264,7 @@ class TicketInfo
 
 
                     foreach ($attachments as $file) {
-        
+
                         $fileExtension = $file->getClientOriginalExtension();
                         $orginalName = $file->getClientOriginalName();
                         $customizeName = time() . '_' . uniqid() . '.' . $fileExtension;
@@ -1289,13 +1327,13 @@ class TicketInfo
 //             // Remove active SLA record
 //             $firstResSla->delete();
 
-   
+
 // }
 
     public static function processFirstResponseSla($ticketNumber, $ticketUpdatedAt = null): void
     {
         $firstResSla = FirstResSla::where('ticket_number', $ticketNumber)->first();
-        
+
         if (!$firstResSla) {
             return;
         }
@@ -1310,7 +1348,7 @@ class TicketInfo
 
         // Calculate ticket age
         $ticketAgeMinutes = now()->diffInMinutes($ticketUpdatedAt);
-        
+
         // Determine SLA status
         $allowedMinutes = (int) $firstResSlaConfig->duration_min;
         $isBreached = $ticketAgeMinutes > $allowedMinutes;
@@ -1340,7 +1378,7 @@ class TicketInfo
     public static function commentFirstResponseSla($ticketNumber, $ticketUpdatedAt = null): void
     {
         $firstResSla = FirstResSla::where('ticket_number', $ticketNumber)->first();
-        
+
         if (!$firstResSla) {
             return;
         }
@@ -1360,7 +1398,7 @@ class TicketInfo
         // Determine SLA status
         $allowedMinutes = (int) $firstResSlaConfig->duration_min;
         $slaStatus = $ticketAgeMinutes <= $allowedMinutes ? 1 : 0;
-        
+
 
         // Update SLA
         $firstResSla->update([
@@ -1381,7 +1419,7 @@ class TicketInfo
 
     public static function firstResponseSla( $ticketNumber, $ticketUpdatedAt,$teamId): void
     {
-      
+
         $firstResSla = FirstResSla::where('ticket_number', $ticketNumber)->first();
 
         if ($firstResSla) {
@@ -1554,7 +1592,7 @@ class TicketInfo
         SrvTimeSubcatSla::create([
             'ticket_number'       => $ticketNumber,
             'sla_subcat_config_id' => $newSubCategorySlaConfig->id,
-            'sla_status'          => 2, 
+            'sla_status'          => 2,
         ]);
         // ===============================
         // 8. INSERT NEW SLA HISTORY
@@ -1562,7 +1600,7 @@ class TicketInfo
         SrvTimeSubcatSlaHistory::create([
             'ticket_number'       => $ticketNumber,
             'sla_subcat_config_id' => $newSubCategorySlaConfig->id,
-            'sla_status'          => 2, 
+            'sla_status'          => 2,
         ]);
 
     }
@@ -1612,7 +1650,7 @@ class TicketInfo
     public static function processServiceTimeSlaSubcategory($ticketNumber, $ticketUpdatedAt = null): void
     {
         $subCategorySla = SrvTimeSubcatSla::where('ticket_number', $ticketNumber)->first();
-        
+
         if (!$subCategorySla) {
             return;
         }
@@ -1627,7 +1665,7 @@ class TicketInfo
 
         // Calculate ticket age
         $ticketAgeMinutes = now()->diffInMinutes($ticketUpdatedAt);
-        
+
         // Determine SLA status
         $allowedMinutes = (int) $subCategorySlaConfig->resolution_min;
         $slaStatus = $ticketAgeMinutes <= $allowedMinutes ? 1 : 0;
@@ -1652,7 +1690,7 @@ class TicketInfo
 
     public static function processJobServiceTimeSlaSubcategory( $ticketNumber, $ticketUpdatedAt)
     {
-    
+
         $subCategorySla = SrvTimeSubcatSla::where('ticket_number', $ticketNumber)->first();
 
         if (!$subCategorySla) {
@@ -1692,11 +1730,11 @@ class TicketInfo
         // Remove active SLA record
         $subCategorySla->delete();
         }
-        
 
 
-    
-        
+
+
+
 
     }
 
