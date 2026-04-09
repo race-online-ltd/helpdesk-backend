@@ -42,9 +42,9 @@ class SuperappController extends Controller
         $categories = DB::select("
             SELECT c.id, c.category_in_english, c.category_in_bangla
             FROM helpdesk.categories c
-            LEFT JOIN helpdesk.category_entity_mappings cm 
+            LEFT JOIN helpdesk.category_entity_mappings cm
                 ON c.id = cm.category_id
-            LEFT JOIN helpdesk.companies co 
+            LEFT JOIN helpdesk.companies co
                 ON cm.company_id = co.id
             WHERE cm.company_id = ?
             AND cm.is_client_visible = 1
@@ -78,12 +78,12 @@ class SuperappController extends Controller
                 return ApiResponse::error("Invalid entity mapping", "Error", 400);
             }
             $subCategories = DB::select("
-                SELECT 
+                SELECT
                     sc.id,
                     sc.sub_category_in_english,
                     sc.sub_category_in_bangla
                 FROM helpdesk.sub_categories sc
-                INNER JOIN helpdesk.entity_category_subcategory_mappings ecsm 
+                INNER JOIN helpdesk.entity_category_subcategory_mappings ecsm
                     ON sc.id = ecsm.sub_category_id
                 WHERE ecsm.is_client_visible = 1
                     AND ecsm.category_id = ?
@@ -102,7 +102,7 @@ class SuperappController extends Controller
                 500
             );
         }
-    
+
     }
 
 
@@ -125,178 +125,23 @@ class SuperappController extends Controller
                 500
             );
         }
-    
+
     }
 
-   
+
 
 
     /**
      * Create ticket from super app
      */
 
-    // public function storeTicket(Request $request)
-    // {
 
-    //  return ApiResponse::success([], "Ticket Successfully Created", 201);
-    //  return $request->all();
-    //     $recentClientId = Client::createChildClient($request->clientInfo);
-        
-    //     $teamMapping = TeamMappingForPartner::where('company_id', $request->businessEntity)
-    //         ->where('subcategory_id', $request->subCategory)
-    //         ->where('is_active', true)
-    //         ->first();
-        
-    //     if ($teamMapping) {
-    //         $teamId = $teamMapping->team_id;
-    //     } else {
-    //         $teamId = $map[$request->subCategoryName] ?? null;
-    //         if (!$teamId) {
-    //             return ApiResponse::error(
-    //                 'No team mapping or fallback team found.',
-    //                 'Error',
-    //                 422
-    //             );
-    //         }
-    //     }
-        
-    //     $ticketNumber = TicketInfo::ticketNumberGenarate();
-    //     $attachments = $request->file('attachment', []);
-    //     $ccEmail = $request->ccEmail;
-        
-    //     $ticketData = [
-    //         'ticket_number'      => $ticketNumber,
-    //         'is_parent'          => 0,
-    //         'platform_id'        => $request->platform_id ?? 1,
-    //         'user_id'            => $request->user_id,
-    //         'status_updated_by'  => $request->user_id,
-    //         'business_entity_id' => $request->businessEntity,
-    //         'client_id_helpdesk' => $recentClientId,
-    //         'client_id_vendor'   => $request->client,
-    //         'source_id'          => $request->source,
-    //         'cat_id'             => $request->category,
-    //         'subcat_id'          => $request->subCategory,
-    //         'priority_name'      => $request->priority,
-    //         'status_id'          => $request->status,
-    //         'team_id'            => $teamId, 
-    //         'note'               => $request->descriptions,
-    //         'mobile_no'          => $request->mobileNumber,
-    //     ];
-        
-    //     // Add aggregator_id if business entity is 8 or 9
-    //     if (in_array($ticketData['business_entity_id'], [8, 9]) && $request->has('aggregatorId')) {
-    //         $ticketData['aggregator_id'] = $request->aggregatorId;
-    //     }
-        
-    //     $orbitData = in_array($ticketData['business_entity_id'], [8, 9])
-    //         ? [
-    //             'ticket_number'      => $ticketNumber,
-    //             'client_type'        => $request->clientInfo['clientType'],
-    //             'client_id_helpdesk' => $recentClientId,
-    //             'client_id_vendor'   => $request->client,
-    //             'billing_source'     => $request->clientInfo['billingSource'],
-    //             'sid_uid'            => $request->sid,
-    //             'fullname'           => $request->clientInfo['fullName'],
-    //             'phone'              => $request->clientInfo['primaryEmail'],
-    //             'aggregator_id'      => $request->aggregatorId ?? null,
-    //         ]
-    //         : null;
-        
-    //     // ✅ INSERT INTO ticket_assign_team_logs
-    //     try {
-    //         TicketAssignTeamLog::create([
-    //             'ticket_number' => $ticketNumber,
-    //             'assigned_in'   => $teamId,
-    //             'assigned_out'  => null,
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         return ApiResponse::error(
-    //             'Error creating ticket assignment log: ' . $e->getMessage(),
-    //             'Error',
-    //             500
-    //         );
-    //     }
-        
-    //     // ✅ FIRST RESPONSE SLA LOGIC
-    //     try {
-    //         $firstResConfig = FirstResConfig::where('team_id', $teamId)->first();
-            
-    //         if ($firstResConfig) {
-    //             FirstResSla::create([
-    //                 'ticket_number'       => $ticketNumber,
-    //                 'first_res_config_id' => $firstResConfig->id,
-    //                 'sla_status'          => 2,
-    //             ]);
-                
-    //             FirstResSlaHistory::create([
-    //                 'ticket_number'       => $ticketNumber,
-    //                 'first_res_config_id' => $firstResConfig->id,
-    //                 'sla_status'          => 2,
-    //             ]);
-    //         }
-    //     } catch (\Exception $e) {
-    //         Log::error('Error creating First Response SLA: ' . $e->getMessage());
-    //     }
-        
-    //     // ✅ SERVICE TIME SLA LOGIC
-    //     try {
-    //         // Check if client-specific SLA config exists
-    //         $slaClientConfig = SlaClientConfig::where('client_id', $recentClientId)
-    //             ->first();
-            
-    //         if ($slaClientConfig) {
-    //             // Client-specific SLA exists
-    //             SrvTimeClientSla::create([
-    //                 'ticket_number'        => $ticketNumber,
-    //                 'sla_client_config_id' => $slaClientConfig->id,
-    //                 'sla_status'           => 2,
-    //             ]);
-                
-    //             SrvTimeClientSlaHistory::create([
-    //                 'ticket_number'        => $ticketNumber,
-    //                 'sla_client_config_id' => $slaClientConfig->id,
-    //                 'sla_status'           => 2,
-    //                 // 'created_at'           => now(),
-    //             ]);
-    //         } else {
-    //             // Check for subcategory-specific SLA config
-    //             $slaSubcatConfig = SlaSubcatConfig::where('business_entity_id', $request->businessEntity)
-    //                 ->where('team_id', $teamId)
-    //                 ->where('subcategory_id', $request->subCategory)
-    //                 ->first();
-                
-    //             if ($slaSubcatConfig) {
-    //                 SrvTimeSubcatSla::create([
-    //                     'ticket_number'        => $ticketNumber,
-    //                     'sla_subcat_config_id' => $slaSubcatConfig->id,
-    //                     'sla_status'           => 2,
-    //                 ]);
-                    
-    //                 SrvTimeSubcatSlaHistory::create([
-    //                     'ticket_number'        => $ticketNumber,
-    //                     'sla_subcat_config_id' => $slaSubcatConfig->id,
-    //                     'sla_status'           => 2,
-    //                 ]);
-    //             }
-    //         }
-    //     } catch (\Exception $e) {
-    //         Log::error('Error creating Service Time SLA: ' . $e->getMessage());
-    //     }
-        
-    //     // 7️⃣ Create ticket
-    //     return TicketInfo::ticketCreatedByClient(
-    //         $ticketData,
-    //         $ccEmail,
-    //         $attachments,
-    //         $orbitData
-    //     );
-    // }
 
     public function storeTicket(Request $request)
     {
           try {
 
-        
+
 
                   $validator = Validator::make($request->all(), [
                   // ✅ Required Fields
@@ -417,7 +262,7 @@ class SuperappController extends Controller
               // ✅ Attachments
               $attachments = $request->file('attachment', []);
               // return ApiResponse::success([$ticketNumber, $attachments, $teamId], "Success", 200);
-              
+
 
               // ✅ Ticket Data
               $ticketData = [
@@ -542,7 +387,7 @@ class SuperappController extends Controller
      */
 //     public function showTicket($sid)
 //     {
-//       $ticket = DB::select("SELECT 
+//       $ticket = DB::select("SELECT
 //     t.ticket_number,
 //     cat.category_in_bangla,
 //     cat.category_in_english,
@@ -568,24 +413,24 @@ class SuperappController extends Controller
 
 // ) t
 
-// LEFT JOIN helpdesk.statuses st 
+// LEFT JOIN helpdesk.statuses st
 //     ON t.status_id = st.id
 
-// LEFT JOIN helpdesk.priorities p 
+// LEFT JOIN helpdesk.priorities p
 //     ON t.priority_name = p.id
 
-// LEFT JOIN helpdesk.categories cat 
+// LEFT JOIN helpdesk.categories cat
 //     ON t.cat_id = cat.id
 
-// LEFT JOIN helpdesk.sub_categories sub 
+// LEFT JOIN helpdesk.sub_categories sub
 //     ON t.subcat_id = sub.id
 
-// LEFT JOIN helpdesk.ticket_orbits tb 
+// LEFT JOIN helpdesk.ticket_orbits tb
 //     ON tb.ticket_number = t.ticket_number
 
 // /* attachments aggregation */
 // LEFT JOIN (
-//     SELECT 
+//     SELECT
 //         ticket_number,
 //         JSON_ARRAYAGG(CONCAT('https://ticketstaging.race.net.bd/', url)) AS attachments
 //     FROM helpdesk.ticket_attachments
@@ -594,7 +439,7 @@ class SuperappController extends Controller
 
 // /* comments + comment attachments */
 // LEFT JOIN (
-//     SELECT 
+//     SELECT
 //         tc.ticket_number,
 //         JSON_ARRAYAGG(
 //             JSON_OBJECT(
@@ -623,7 +468,7 @@ public function showTicket(Request $request, $sid)
     $perPage = $request->get('per_page', 10);
     $currentPage = $request->get('page', 1);
 
-    $ticket = DB::select("SELECT 
+    $ticket = DB::select("SELECT
     t.ticket_number,
     cat.category_in_bangla,
     cat.category_in_english,
@@ -649,23 +494,23 @@ FROM (
 
 ) t
 
-LEFT JOIN helpdesk.statuses st 
+LEFT JOIN helpdesk.statuses st
     ON t.status_id = st.id
 
-LEFT JOIN helpdesk.priorities p 
+LEFT JOIN helpdesk.priorities p
     ON t.priority_name = p.id
 
-LEFT JOIN helpdesk.categories cat 
+LEFT JOIN helpdesk.categories cat
     ON t.cat_id = cat.id
 
-LEFT JOIN helpdesk.sub_categories sub 
+LEFT JOIN helpdesk.sub_categories sub
     ON t.subcat_id = sub.id
 
-LEFT JOIN helpdesk.ticket_orbits tb 
+LEFT JOIN helpdesk.ticket_orbits tb
     ON tb.ticket_number = t.ticket_number
 
 LEFT JOIN (
-    SELECT 
+    SELECT
         ticket_number,
         JSON_ARRAYAGG(CONCAT('https://ticketstaging.race.net.bd/', url)) AS attachments
     FROM helpdesk.ticket_attachments
@@ -673,7 +518,7 @@ LEFT JOIN (
 ) ta ON ta.ticket_number = t.ticket_number
 
 LEFT JOIN (
-    SELECT 
+    SELECT
         tc.ticket_number,
         JSON_ARRAYAGG(
             JSON_OBJECT(
@@ -709,7 +554,7 @@ WHERE tb.sid_uid = '$sid'");
         "last_page" => ceil($total / $perPage),
         "from" => ($currentPage - 1) * $perPage + 1,
         "to" => min($currentPage * $perPage, $total),
-       
+
     ];
 
     return ApiResponse::success($data, "Success", 200);
@@ -727,19 +572,19 @@ public function filterTickets(Request $request)
         SELECT * FROM helpdesk.close_tickets
     ) t
 
-    LEFT JOIN helpdesk.statuses st 
+    LEFT JOIN helpdesk.statuses st
         ON t.status_id = st.id
 
-    LEFT JOIN helpdesk.priorities p 
+    LEFT JOIN helpdesk.priorities p
         ON t.priority_name = p.id
 
-    LEFT JOIN helpdesk.categories cat 
+    LEFT JOIN helpdesk.categories cat
         ON t.cat_id = cat.id
 
-    LEFT JOIN helpdesk.sub_categories sub 
+    LEFT JOIN helpdesk.sub_categories sub
         ON t.subcat_id = sub.id
 
-    LEFT JOIN helpdesk.ticket_orbits tb 
+    LEFT JOIN helpdesk.ticket_orbits tb
         ON tb.ticket_number = t.ticket_number
     ";
 
@@ -783,7 +628,7 @@ public function filterTickets(Request $request)
 
     /* main data query */
     $dataQuery = "
-    SELECT 
+    SELECT
         t.ticket_number,
         cat.category_in_bangla,
         cat.category_in_english,
@@ -801,7 +646,7 @@ public function filterTickets(Request $request)
     " . $baseSql . "
 
     LEFT JOIN (
-        SELECT 
+        SELECT
             ticket_number,
             JSON_ARRAYAGG(CONCAT('https://ticketstaging.race.net.bd/', url)) AS attachments
         FROM helpdesk.ticket_attachments
@@ -809,7 +654,7 @@ public function filterTickets(Request $request)
     ) ta ON ta.ticket_number = t.ticket_number
 
     LEFT JOIN (
-        SELECT 
+        SELECT
             tc.ticket_number,
             JSON_ARRAYAGG(
                 JSON_OBJECT(

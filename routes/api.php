@@ -55,7 +55,7 @@ Route::get('v1/public-ticket/{token}', [TicketController::class, 'getPublicTicke
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth:sanctum')->group(function () {
-    
+
 Route::prefix('v1/sms-attributes')->group(function () {
     Route::get('/',        [SmsAttributeController::class, 'index']);
     Route::post('/',       [SmsAttributeController::class, 'store']);
@@ -143,7 +143,7 @@ Route::post('v1/sms/send-client', [SendSmsController::class, 'sendSMSForClient']
 
 
         Route::prefix('team-mapping')->group(function () {
-            
+
             Route::get('/', [TeamMappingController::class, 'index']);
             Route::post('/store', [TeamMappingController::class, 'store']);
             Route::get('/show/{id}', [TeamMappingController::class, 'show']);
@@ -151,7 +151,7 @@ Route::post('v1/sms/send-client', [SendSmsController::class, 'sendSMSForClient']
             Route::delete('/{id}', [TeamMappingController::class, 'destroy']);
 
             Route::get('/subcategory/by-category/{categoryId}', [TeamMappingController::class, 'getSubCategoriesByCategory']);
-    
+
             // Alternative: Fetch subcategories by category ID (direct SQL)
             Route::get('/category/{categoryId}', [TeamMappingController::class, 'getSubCategoriesByCategoryDirect']);
 
@@ -174,7 +174,7 @@ Route::post('v1/sms/send-client', [SendSmsController::class, 'sendSMSForClient']
 
             Route::post('additional-config', [TeamController::class, 'storeOrUpdateTeamConfiguration']);
             Route::get('config-show/{id}', [TeamController::class, 'getTeamConfig']);
-            
+
         });
 
         Route::prefix('settings/division')->group(function () {
@@ -364,6 +364,7 @@ Route::post('v1/sms/send-client', [SendSmsController::class, 'sendSMSForClient']
 
             Route::post('store/self/ticket', [TicketController::class, 'storeSelfTicket']);
             Route::post('forward-to-hq', [TicketController::class, 'forwardToHQ']);
+            Route::post('create-voice-ticket', [TicketController::class, 'createVoiceTicket']);
             Route::post('self/show', [TicketController::class, 'selfTicketShow']);
             Route::post('self-ticket-to-ticket', [TicketController::class, 'insertSelfTicketToTicket']);
 
@@ -382,7 +383,7 @@ Route::post('v1/sms/send-client', [SendSmsController::class, 'sendSMSForClient']
 
             Route::get('status/changetoopen/by/status/ticket/{status}/{ticketNo}/{userId}', [TicketController::class, 'ticketReopened']);
 
-            // 
+            //
 
             Route::get('assing/team/show/by/subcategory/{id}', [TicketController::class, 'getTeamBySubcategoryId']);
 
@@ -472,7 +473,7 @@ Route::post('v1/sms/send-client', [SendSmsController::class, 'sendSMSForClient']
 
 
 
-        
+
 
         Route::prefix('settings/client-aggregator-mapping')->group(function () {
             Route::post('store', [ClientAggregatorMappingController::class, 'store']);
@@ -501,7 +502,7 @@ Route::post('v1/sms/send-client', [SendSmsController::class, 'sendSMSForClient']
         });
 
 
-       
+
 
 
 
@@ -514,7 +515,7 @@ Route::post('v1/sms/send-client', [SendSmsController::class, 'sendSMSForClient']
 
 
 
-        
+
 
 
 
